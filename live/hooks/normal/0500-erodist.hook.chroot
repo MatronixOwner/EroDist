@@ -18,3 +18,11 @@ command -v flameshot
 command -v timeshift-gtk
 command -v xfce4-power-manager-settings
 python3 -m py_compile /usr/local/bin/erodist-apps /usr/local/bin/erodist-settings /usr/local/libexec/erodist-install
+# Validate catalog resolution against the actual Debian indexes without installing apps.
+python3 - <<'PY'
+import json
+import subprocess
+from pathlib import Path
+for app in json.loads(Path('/usr/share/erodist/apps.json').read_text()).values():
+    subprocess.run(['apt-get', '-s', 'install', '--', *app['packages']], check=True)
+PY

@@ -50,7 +50,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalog(self):
         import json
         catalog = json.loads((LIVE / 'usr/share/erodist/apps.json').read_text())
-        self.assertEqual(catalog['python']['packages'], ['python3', 'python3-pip', 'python3-venv', 'idle3'])
+        self.assertEqual(catalog['python']['packages'], ['python3', 'python3-pip', 'python3-venv', 'idle'])
         for app in catalog.values():
             for package in app['packages']:
                 self.assertRegex(package, r'^[a-z0-9][a-z0-9+.-]*$')
