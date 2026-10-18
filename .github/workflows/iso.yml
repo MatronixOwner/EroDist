@@ -26,7 +26,7 @@ jobs:
             -v "$PWD:/workspace" -w /workspace \
             debian:bookworm bash -euxo pipefail -c '
               apt-get update
-              apt-get install -y --no-install-recommends live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools ca-certificates
+              apt-get install -y --no-install-recommends cpio file gzip xz-utils live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools ca-certificates
               bash scripts/build.sh
             ' 2>&1 | tee /tmp/erodist-build.log
       - name: Attach failure details to check
