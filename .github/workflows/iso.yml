@@ -1,0 +1,45 @@
+name: Build EroDist ISO
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths:
+      - 'live/**'
+      - 'scripts/build.sh'
+      - '.github/workflows/iso.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: erodist-iso-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Debian Live in privileged Debian container
+        run: |
+          docker run --rm --privileged \
+            -v "$PWD:/workspace" -w /workspace \
+            debian:bookworm bash -euxo pipefail -c '
+              apt-get update
+              apt-get install -y --no-install-recommends live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools ca-certificates
+              bash scripts/build.sh
+            '
+      - name: Check ISO and release size limit
+        run: |
+          test -s artifacts/erodist-0.1.0-amd64.iso
+          (cd artifacts && sha256sum -c SHA256SUMS)
+          test "$(stat -c %s artifacts/erodist-0.1.0-amd64.iso)" -lt 2147483648
+          file artifacts/*.iso
+      - name: Publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="test-0.1.0-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$tag" artifacts/*.iso artifacts/SHA256SUMS \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "EroDist 0.1.0 — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Тестовый Debian 12 Live / XFCE, amd64. BIOS и UEFI (Secure Boot отключить). Пользователь: tester, пароль: live. Начните с VM: 2 CPU, 4 GB RAM, 25 GB диск. Установка может удалить данные! Проверяйте SHA256SUMS. Исходный commit: ${GITHUB_SHA}. Образ ещё не прошёл ручное тестирование."

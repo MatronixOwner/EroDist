@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+file="$(mktemp "${HOME}/erodist-report.XXXXXX.txt")"
+{
+  echo 'EroDist 0.1.0 diagnostic report'
+  date -u
+  uname -srmo
+  cat /etc/os-release
+  echo '\n=== Boot mode ==='
+  if [ -d /sys/firmware/efi ]; then echo UEFI; else echo BIOS; fi
+  echo '\n=== PCI devices and drivers ==='
+  if command -v lspci >/dev/null; then lspci -nnk; fi
+  echo '\n=== Memory ==='
+  free -h
+  echo '\n=== Failed services ==='
+  systemctl --failed --no-pager || true
+} > "$file" 2>&1
+printf 'Report: %s\nReview for personal information before sharing.\n' "$file"

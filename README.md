@@ -1,1 +1,48 @@
 # EroDist
+
+Тестовый Linux-дистрибутив на **Debian 12 Bookworm**, **XFCE**, архитектура **amd64**.
+Это ранняя сборка для проверки, не готовая замена основной ОС.
+
+## Скачать и проверить
+
+Готовые ISO после успешной сборки появляются в [Releases](https://github.com/d50130483-ship-it/EroDist/releases).
+Ход сборки и ошибки доступны в [Actions](https://github.com/d50130483-ship-it/EroDist/actions/workflows/iso.yml).
+Если сборка не прошла, нового ISO в Releases не будет.
+
+1. Скачайте ISO и `SHA256SUMS` из **одного релиза**.
+2. В папке загрузки выполните `sha256sum -c SHA256SUMS` (Linux).
+   В Windows: `Get-FileHash .\erodist-0.1.0-amd64.iso -Algorithm SHA256`, сравните с `SHA256SUMS`.
+3. Сначала загрузите ISO в VM: 2 CPU, 4 ГБ RAM, 25 ГБ виртуальный диск.
+4. Выберите Live. Логин **tester**, пароль **live**, доступен `sudo`.
+5. Проверьте рабочий стол, сеть, звук, браузер, перезагрузку, затем установку на **пустой виртуальный диск**.
+
+Поддерживаются BIOS и UEFI; **Secure Boot отключите**. Работа на конкретном железе пока не проверена.
+Live-сессия без persistence: изменения исчезнут после перезагрузки.
+Установщик Debian доступен в загрузочном меню. Установка/запись ISO может уничтожить данные — сделайте резервную копию.
+Не используйте известный Live-пароль в установленной системе: создайте своего пользователя в установщике.
+
+## Сообщить о баге
+
+Создайте [issue](https://github.com/d50130483-ship-it/EroDist/issues/new/choose) или отправьте описание в чат:
+имя ISO/релиз, VM или модель ПК, BIOS/UEFI, шаги, ожидание, фактический результат и снимок ошибки.
+Команда `erodist-report` собирает базовый отчёт в домашнюю папку. Перед отправкой проверьте содержимое на личные данные.
+
+## Сборка
+
+GitHub Actions собирает ISO в привилегированном контейнере Debian 12 и публикует prerelease с контрольной суммой.
+Автозапуск настроен для изменений сборки в рабочей ветке `arena/a42c77fd-erodist`; также доступен ручной `workflow_dispatch` (когда workflow есть в основной ветке).
+Требуется разрешение GitHub Actions на запись содержимого репозитория. Сборка обычно занимает десятки минут.
+
+Локально на Linux с Docker (нужны интернет, root-привилегии контейнера и примерно 15–20 ГБ свободного места):
+
+```sh
+docker run --rm --privileged -v "$PWD:/workspace" -w /workspace debian:bookworm bash -euxo pipefail -c '
+  apt-get update
+  apt-get install -y --no-install-recommends live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools ca-certificates
+  bash scripts/build.sh
+'
+```
+
+Результат: `artifacts/erodist-0.1.0-amd64.iso` и `artifacts/SHA256SUMS`.
+ISO и рабочий каталог сборки не хранятся в Git. Используются актуальные зеркала Debian, поэтому сборки не побитово воспроизводимы.
+Исходники пакетов и их лицензии доступны в Debian; пакеты с non-free firmware имеют отдельные условия распространения.
