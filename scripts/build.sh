@@ -2,7 +2,7 @@
 set -euo pipefail
 export LC_ALL=C
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${ERODIST_VERSION:-0.2.0}"
+VERSION="${ERODIST_VERSION:-0.3.0}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid ERODIST_VERSION' >&2; exit 1; }
 [[ $EUID -eq 0 ]] || { echo 'Run as root inside Debian 12 (see README).' >&2; exit 1; }
 command -v lb >/dev/null
@@ -11,7 +11,7 @@ cd "$ROOT/build"
 if [[ -f config/common ]]; then lb clean --purge; fi
 lb config \
   --mode debian --distribution bookworm --architectures amd64 \
-  --binary-images iso-hybrid --bootloaders 'syslinux,grub-efi' \
+  --squashfs-compression xz --binary-images iso-hybrid --bootloaders 'syslinux,grub-efi' \
   --archive-areas 'main contrib non-free non-free-firmware' \
   --debian-installer live --debian-installer-gui true \
   --bootappend-live 'boot=live components username=tester hostname=erodist locales=ru_RU.UTF-8 keyboard-layouts=us,ru keyboard-options=grp:alt_shift_toggle' \

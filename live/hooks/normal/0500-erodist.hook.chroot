@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 # Retain Debian ID / VERSION_ID: apt and installer tooling must recognise the base.
-printf 'EroDist 0.2.0 — Debian GNU/Linux 12 \\n \\l\n' > /etc/issue
-printf 'EroDist 0.2.0\nDebian 12 / XFCE. Documentation: /usr/share/erodist/guide.html\n' > /etc/motd
-printf '0.2.0\n' > /etc/erodist-version
+printf 'EroDist 0.3.0 — Debian GNU/Linux 12 \\n \\l\n' > /etc/issue
+printf 'EroDist 0.3.0\nDebian 12 / XFCE. Documentation: /usr/share/erodist/guide.html\n' > /etc/motd
+printf '0.3.0\n' > /etc/erodist-version
 sed -i 's/^# *ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/; s/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
 update-locale LANG=ru_RU.UTF-8
@@ -13,3 +13,8 @@ ln -sf /usr/share/backgrounds/erodist/black-gradient.png /usr/share/backgrounds/
 python3 -c 'import gi; gi.require_version("Gtk", "3.0"); from gi.repository import Gtk'
 command -v gpk-update-viewer
 command -v erodist-report
+
+command -v flameshot
+command -v timeshift-gtk
+command -v xfce4-power-manager-settings
+python3 -m py_compile /usr/local/bin/erodist-apps /usr/local/bin/erodist-settings /usr/local/libexec/erodist-install

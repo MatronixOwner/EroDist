@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Центр настроек EroDist
+Exec=erodist-settings
+Icon=preferences-system
+Categories=System;Settings;
+Terminal=false

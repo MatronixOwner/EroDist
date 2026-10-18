@@ -40,3 +40,8 @@ packagekit
 policykit-1-gnome
 pciutils
 xdg-utils
+xfce4-power-manager
+upower
+xfce4-whiskermenu-plugin
+flameshot
+timeshift

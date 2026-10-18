@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Популярные программы и Python
+Exec=erodist-apps
+Icon=preferences-system
+Categories=System;Settings;
+Terminal=false

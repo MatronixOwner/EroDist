@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=EroDist Screenshots
+Exec=flameshot
+Icon=flameshot
+OnlyShowIn=XFCE;

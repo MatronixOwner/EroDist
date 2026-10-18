@@ -21,11 +21,13 @@ class Welcome(Gtk.Window):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.add(box)
         title = Gtk.Label()
-        title.set_markup('<span size="26000" weight="bold">EroDist 0.2</span>')
+        title.set_markup('<span size="26000" weight="bold">EroDist 0.3</span>')
         box.pack_start(title, False, False, 8)
         subtitle = Gtk.Label(label='Твоя система. Твоё пространство.\nDebian 12 · XFCE · RU / EN: Alt + Shift')
         box.pack_start(subtitle, False, False, 4)
         for text, callback in [
+            ('Центр настроек EroDist', lambda *_: self.launch(['erodist-settings'])),
+            ('Популярные программы и Python', lambda *_: self.launch(['erodist-apps'])),
             ('Установить систему…', self.install),
             ('Инструкция и проверка установки', lambda *_: self.open_uri(Path(GUIDE).as_uri())),
             ('Проверить обновления', lambda *_: self.launch(['gpk-update-viewer'])),
