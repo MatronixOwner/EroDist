@@ -2,7 +2,7 @@
 set -euo pipefail
 export LC_ALL=C
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${ERODIST_VERSION:-0.3.0}"
+VERSION="${ERODIST_VERSION:-0.4.0}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid ERODIST_VERSION' >&2; exit 1; }
 [[ $EUID -eq 0 ]] || { echo 'Run as root inside Debian 12 (see README).' >&2; exit 1; }
 command -v lb >/dev/null

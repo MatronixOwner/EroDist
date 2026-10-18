@@ -21,7 +21,7 @@ class Welcome(Gtk.Window):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.add(box)
         title = Gtk.Label()
-        title.set_markup('<span size="26000" weight="bold">EroDist 0.3</span>')
+        title.set_markup('<span size="26000" weight="bold">EroDist 0.4</span>')
         box.pack_start(title, False, False, 8)
         subtitle = Gtk.Label(label='Твоя система. Твоё пространство.\nDebian 12 · XFCE · RU / EN: Alt + Shift')
         box.pack_start(subtitle, False, False, 4)
@@ -62,18 +62,7 @@ class Welcome(Gtk.Window):
             MARKER.unlink(missing_ok=True)
 
     def install(self, *_):
-        live = any(p.startswith('boot=live') for p in Path('/proc/cmdline').read_text().split())
-        if not live:
-            self.status.set_text('Система уже установлена. Инструкция доступна отдельной кнопкой.')
-            return
-        dialog = Gtk.MessageDialog(transient_for=self, modal=True,
-            message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL,
-            text='Перезагрузиться для установки?')
-        dialog.format_secondary_text('Сохраните открытые файлы. После перезагрузки выберите Install / Graphical install в меню ISO. Установщик может удалить данные: сначала используйте пустой виртуальный диск. Эта кнопка сама не размечает диски.')
-        response = dialog.run()
-        dialog.destroy()
-        if response == Gtk.ResponseType.OK:
-            self.launch(['xfce4-session-logout', '--reboot'])
+        self.launch(['erodist-installer'])
 
     def report(self, *_):
         self.status.set_text('Создание отчёта…')

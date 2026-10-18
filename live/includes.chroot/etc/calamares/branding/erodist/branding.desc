@@ -1,0 +1,33 @@
+---
+componentName: erodist
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,640px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+  productName: EroDist
+  shortProductName: EroDist
+  version: "0.4.0"
+  shortVersion: "0.4"
+  versionedName: EroDist 0.4
+  shortVersionedName: EroDist 0.4
+  bootloaderEntryName: EroDist
+  productUrl: https://github.com/d50130483-ship-it/EroDist
+  supportUrl: https://github.com/d50130483-ship-it/EroDist/issues
+  knownIssuesUrl: https://github.com/d50130483-ship-it/EroDist/issues
+  releaseNotesUrl: https://github.com/d50130483-ship-it/EroDist/releases
+  donateUrl: ""
+images:
+  productLogo: logo.svg
+  productIcon: logo.svg
+  productWelcome: welcome.svg
+slideshow: show.qml
+slideshowAPI: 2
+style:
+  SidebarBackground: "#0b0b0b"
+  SidebarText: "#aaaaaa"
+  SidebarTextCurrent: "#ffffff"
+  SidebarBackgroundCurrent: "#303030"

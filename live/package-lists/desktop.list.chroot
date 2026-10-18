@@ -47,3 +47,8 @@ flameshot
 timeshift
 xfce4-power-manager-plugins
 xfce4-pulseaudio-plugin
+calamares
+calamares-settings-debian
+python3-yaml
+qml-module-qtquick2
+qml-module-qtquick-window2

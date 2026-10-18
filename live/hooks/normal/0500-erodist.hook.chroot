@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 # Retain Debian ID / VERSION_ID: apt and installer tooling must recognise the base.
-printf 'EroDist 0.3.0 — Debian GNU/Linux 12 \\n \\l\n' > /etc/issue
-printf 'EroDist 0.3.0\nDebian 12 / XFCE. Documentation: /usr/share/erodist/guide.html\n' > /etc/motd
-printf '0.3.0\n' > /etc/erodist-version
+printf 'EroDist 0.4.0 — Debian GNU/Linux 12 \\n \\l\n' > /etc/issue
+printf 'EroDist 0.4.0\nDebian 12 / XFCE. Documentation: /usr/share/erodist/guide.html\n' > /etc/motd
+printf '0.4.0\n' > /etc/erodist-version
 sed -i 's/^# *ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/; s/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
 update-locale LANG=ru_RU.UTF-8

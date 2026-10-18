@@ -15,7 +15,7 @@ class Settings(Gtk.Window):
         self.connect('destroy', Gtk.main_quit)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self.add(box)
-        box.pack_start(Gtk.Label(label='EroDist 0.3 · Настройки и обслуживание'), False, False, 10)
+        box.pack_start(Gtk.Label(label='EroDist 0.4 · Настройки и обслуживание'), False, False, 10)
         actions = [
             ('Оформление и значки', ['xfce4-appearance-settings']),
             ('Обои и рабочий стол', ['xfdesktop-settings']),
