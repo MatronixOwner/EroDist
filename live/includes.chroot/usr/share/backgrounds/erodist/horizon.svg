@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#10182d"/><stop offset="1" stop-color="#231a42"/></linearGradient><linearGradient id="a"><stop stop-color="#50e3ce"/><stop offset="1" stop-color="#8474ff"/></linearGradient></defs>
-<path fill="url(#bg)" d="M0 0h2560v1440H0z"/>
-<circle cx="1970" cy="390" r="340" fill="#7660d4" opacity=".07"/>
-<path d="M0 1110Q640 700 1280 1080T2560 890V1440H0Z" fill="#6560c5" opacity=".12"/>
-<path d="M0 1230Q800 900 1600 1200T2560 1100" fill="none" stroke="url(#a)" stroke-width="3" opacity=".6"/>
-<path d="M1150 520h190v36h-150v65h126v36h-126v67h150v36h-190z" fill="url(#a)"/>
-<text x="1280" y="850" fill="#f1f5ff" font-family="sans-serif" font-size="78" text-anchor="middle" letter-spacing="12">EroDist</text>
-<text x="1280" y="910" fill="#a9b6d2" font-family="sans-serif" font-size="23" text-anchor="middle" letter-spacing="5">YOUR SPACE. YOUR SYSTEM.</text></svg>

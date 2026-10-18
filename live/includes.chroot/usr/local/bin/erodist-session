@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run once per user, after xfdesktop has created its monitor-specific settings.
 set -eu
-marker="$HOME/.config/erodist/desktop-v2"
+marker="$HOME/.config/erodist/desktop-black-v1"
 [ ! -f "$marker" ] || exit 0
 xfconf-query -c xfwm4 -p /general/theme -s Arc-Dark || true
 # XFCE creates properties asynchronously; bounded retry, not a permanent daemon.
@@ -9,7 +9,7 @@ for attempt in 1 2 3 4 5; do
     properties=$(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/last-image$' || true)
     if [ -n "$properties" ]; then
         printf '%s\n' "$properties" | while IFS= read -r property; do
-            xfconf-query -c xfce4-desktop -p "$property" -s /usr/share/backgrounds/erodist/horizon.svg
+            xfconf-query -c xfce4-desktop -p "$property" -s /usr/share/backgrounds/erodist/black-gradient.png
         done
         mkdir -p "$(dirname "$marker")"
         touch "$marker"
