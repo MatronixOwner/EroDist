@@ -11,7 +11,7 @@ cd "$ROOT/build"
 if [[ -f config/common ]]; then lb clean --purge; fi
 lb config \
   --mode debian --distribution bookworm --architectures amd64 \
-  --squashfs-compression xz --binary-images iso-hybrid --bootloaders 'syslinux,grub-efi' \
+  --mksquashfs-options "-comp xz" --binary-images iso-hybrid --bootloaders 'syslinux,grub-efi' \
   --archive-areas 'main contrib non-free non-free-firmware' \
   --debian-installer live --debian-installer-gui true \
   --bootappend-live 'boot=live components username=tester hostname=erodist locales=ru_RU.UTF-8 keyboard-layouts=us,ru keyboard-options=grp:alt_shift_toggle' \
