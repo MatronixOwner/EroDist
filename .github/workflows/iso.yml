@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  checks: write
 concurrency:
   group: erodist-iso-${{ github.ref }}
   cancel-in-progress: false
@@ -26,7 +27,20 @@ jobs:
               apt-get update
               apt-get install -y --no-install-recommends live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools ca-certificates
               bash scripts/build.sh
-            '
+            ' 2>&1 | tee /tmp/erodist-build.log
+      - name: Attach failure details to check
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "build") | .id' | head -1)
+          python3 - <<'PYTHON'
+          import json
+          from pathlib import Path
+          text = Path('/tmp/erodist-build.log').read_text(errors='replace')[-45000:]
+          Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title': 'ISO build failure', 'summary': 'Build failed; diagnostic tail below.', 'text': '```text\n' + text + '\n```'}}))
+          PYTHON
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/check-output.json
       - name: Check ISO and release size limit
         run: |
           test -s artifacts/erodist-0.1.0-amd64.iso
