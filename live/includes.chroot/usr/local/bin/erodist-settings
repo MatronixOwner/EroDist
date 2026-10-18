@@ -14,9 +14,13 @@ class Settings(Gtk.Window):
         self.set_border_width(20)
         self.connect('destroy', Gtk.main_quit)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.add(box)
-        box.pack_start(Gtk.Label(label='EroDist 0.4 · Настройки и обслуживание'), False, False, 10)
+        scroll = Gtk.ScrolledWindow()
+        scroll.add(box)
+        self.add(scroll)
+        box.pack_start(Gtk.Label(label='EroDist 0.5 · Настройки и обслуживание'), False, False, 10)
         actions = [
+            ('О системе EroDist', ['erodist-about']),
+            ('Windows-программы (Wine)', ['erodist-wine']),
             ('Оформление и значки', ['xfce4-appearance-settings']),
             ('Обои и рабочий стол', ['xfdesktop-settings']),
             ('Панель', ['xfce4-panel', '--preferences']),

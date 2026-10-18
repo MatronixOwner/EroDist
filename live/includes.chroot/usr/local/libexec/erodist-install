@@ -12,7 +12,7 @@ def packages_for(key):
         raise ValueError('Unknown application')
     packages = catalog[key]['packages']
     import re
-    if not packages or not all(re.fullmatch(r'[a-z0-9][a-z0-9+.-]*', p) for p in packages):
+    if not packages or not all(re.fullmatch(r'[a-z0-9][a-z0-9+.-]*(?::(?:amd64|i386))?', p) for p in packages):
         raise ValueError('Invalid package configuration')
     return packages
 

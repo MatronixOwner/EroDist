@@ -1,0 +1,89 @@
+#!/usr/bin/python3
+"""Local system information. No hostnames, addresses, serials or uploads."""
+from pathlib import Path
+import platform
+import re
+import subprocess
+
+
+def read_text(path):
+    try:
+        return Path(path).read_text(errors='replace')
+    except OSError:
+        return ''
+
+
+def memory_gib(meminfo):
+    found = re.search(r'^MemTotal:\s+(\d+)\s+kB$', meminfo, re.M)
+    return f'{int(found.group(1)) / 1048576:.1f} ГиБ' if found else 'Не определено'
+
+
+def cpu_name(cpuinfo):
+    found = re.search(r'^(?:model name|Hardware)\s*:\s*(.+)$', cpuinfo, re.M)
+    return found.group(1).strip() if found else platform.machine()
+
+
+def graphics():
+    try:
+        output = subprocess.run(['lspci', '-nnk'], capture_output=True, text=True,
+                                timeout=10, check=True).stdout
+        blocks = re.split(r'\n(?=\S)', output)
+        return '\n'.join(block.strip() for block in blocks
+                         if re.search(r'VGA compatible controller|3D controller|Display controller', block)) or 'Не определено'
+    except (OSError, subprocess.SubprocessError):
+        return 'Не удалось определить (lspci недоступен)'
+
+
+def collect():
+    version = read_text('/etc/erodist-version').strip() or 'Не определено'
+    live = 'boot=live' in read_text('/proc/cmdline').split()
+    return '\n'.join([
+        f'EroDist {version}',
+        'База: Debian GNU/Linux 12 (Bookworm)',
+        f'Ядро: {platform.release()}',
+        f'Архитектура: {platform.machine()}',
+        f'Процессор: {cpu_name(read_text("/proc/cpuinfo"))}',
+        f'Логических процессоров: {__import__("os").cpu_count() or "Не определено"}',
+        f'Память: {memory_gib(read_text("/proc/meminfo"))}',
+        'Загрузка: ' + ('UEFI' if Path('/sys/firmware/efi').is_dir() else 'BIOS'),
+        'Режим: ' + ('Live (изменения без persistence не сохраняются)' if live else 'Установленная система'),
+        'Рабочий стол: XFCE', '', 'Графика и драйвер:', graphics(),
+    ])
+
+
+def main():
+    import threading
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, Gdk, GLib
+    window = Gtk.Window(title='О системе — EroDist')
+    window.set_default_size(700, 530)
+    window.set_border_width(20)
+    window.connect('destroy', Gtk.main_quit)
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+    window.add(box)
+    box.pack_start(Gtk.Label(label='Сведения о системе · только локальный сбор'), False, False, 0)
+    text = Gtk.TextView(editable=False, wrap_mode=Gtk.WrapMode.WORD_CHAR)
+    text.get_buffer().set_text('Сбор сведений…')
+    scroll = Gtk.ScrolledWindow()
+    scroll.add(text)
+    box.pack_start(scroll, True, True, 0)
+    copy = Gtk.Button(label='Скопировать сведения')
+    copy.set_sensitive(False)
+    def clipboard(_):
+        buf = text.get_buffer()
+        Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(buf.get_text(buf.get_start_iter(), buf.get_end_iter(), True), -1)
+        copy.set_label('Скопировано — можно вставить в сообщение о баге')
+    copy.connect('clicked', clipboard)
+    box.pack_start(copy, False, False, 0)
+    def ready(info):
+        text.get_buffer().set_text(info)
+        copy.set_sensitive(True)
+        return False
+    threading.Thread(target=lambda: GLib.idle_add(ready, collect()), daemon=True).start()
+    window.show_all()
+    Gtk.main()
+
+
+if __name__ == '__main__':
+    main()

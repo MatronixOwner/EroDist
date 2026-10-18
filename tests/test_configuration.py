@@ -35,7 +35,7 @@ class ConfigurationTests(unittest.TestCase):
 
     def test_versions(self):
         for name in ['scripts/build.sh', '.github/workflows/iso.yml', 'live/includes.chroot/usr/local/bin/erodist-report']:
-            self.assertIn('0.4.0', (ROOT / name).read_text())
+            self.assertIn('0.5.0', (ROOT / name).read_text())
             self.assertNotIn('0.1.0', (ROOT / name).read_text())
 
     def test_report_private_and_local(self):
@@ -53,7 +53,7 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(catalog['python']['packages'], ['python3', 'python3-pip', 'python3-venv', 'idle'])
         for app in catalog.values():
             for package in app['packages']:
-                self.assertRegex(package, r'^[a-z0-9][a-z0-9+.-]*$')
+                self.assertRegex(package, r'^[a-z0-9][a-z0-9+.-]*(?::(?:amd64|i386))?$')
 
     def test_installer_allowlist(self):
         import runpy

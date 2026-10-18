@@ -10,10 +10,10 @@ navigation: widget
 strings:
   productName: EroDist
   shortProductName: EroDist
-  version: "0.4.0"
-  shortVersion: "0.4"
-  versionedName: EroDist 0.4
-  shortVersionedName: EroDist 0.4
+  version: "0.5.0"
+  shortVersion: "0.5"
+  versionedName: EroDist 0.5
+  shortVersionedName: EroDist 0.5
   bootloaderEntryName: EroDist
   productUrl: https://github.com/d50130483-ship-it/EroDist
   supportUrl: https://github.com/d50130483-ship-it/EroDist/issues

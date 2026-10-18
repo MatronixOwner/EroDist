@@ -1,7 +1,51 @@
 {
-  "python": {"name": "Python 3 + pip + venv + IDLE", "description": "Разработка на Python. Для библиотек создавайте виртуальное окружение; не используйте sudo pip.", "packages": ["python3", "python3-pip", "python3-venv", "idle"]},
-  "vlc": {"name": "VLC", "description": "Видео и музыка", "packages": ["vlc"]},
-  "telegram": {"name": "Telegram Desktop", "description": "Мессенджер из репозитория Debian", "packages": ["telegram-desktop"]},
-  "gimp": {"name": "GIMP", "description": "Редактор изображений", "packages": ["gimp"]},
-  "office": {"name": "LibreOffice", "description": "Документы и таблицы, русский интерфейс", "packages": ["libreoffice", "libreoffice-l10n-ru"]}
+  "python": {
+    "name": "Python 3 + pip + venv + IDLE",
+    "description": "Разработка на Python. Для библиотек создавайте виртуальное окружение; не используйте sudo pip.",
+    "packages": [
+      "python3",
+      "python3-pip",
+      "python3-venv",
+      "idle"
+    ]
+  },
+  "vlc": {
+    "name": "VLC",
+    "description": "Видео и музыка",
+    "packages": [
+      "vlc"
+    ]
+  },
+  "telegram": {
+    "name": "Telegram Desktop",
+    "description": "Мессенджер из репозитория Debian",
+    "packages": [
+      "telegram-desktop"
+    ]
+  },
+  "gimp": {
+    "name": "GIMP",
+    "description": "Редактор изображений",
+    "packages": [
+      "gimp"
+    ]
+  },
+  "office": {
+    "name": "LibreOffice",
+    "description": "Документы и таблицы, русский интерфейс",
+    "packages": [
+      "libreoffice",
+      "libreoffice-l10n-ru"
+    ]
+  },
+  "wine": {
+    "name": "Wine — Windows EXE (32/64 бит)",
+    "description": "Слой совместимости Windows, НЕ песочница. Требует большой загрузки и места (смотрите план). Не все программы работают. После установки повторно откройте EXE.",
+    "packages": [
+      "wine",
+      "wine64",
+      "wine32:i386",
+      "fonts-wine"
+    ]
+  }
 }

@@ -16,7 +16,7 @@ Presentation {
             anchors.centerIn: parent
             width: parent.width * 0.85
             spacing: 24
-            Text { width: parent.width; text: "EroDist 0.4"; color: "#ffffff"; font.pixelSize: 36; horizontalAlignment: Text.AlignHCenter }
+            Text { width: parent.width; text: "EroDist 0.5"; color: "#ffffff"; font.pixelSize: 36; horizontalAlignment: Text.AlignHCenter }
             Text { width: parent.width; text: qsTr("Удобная система на Debian с рабочим столом XFCE. Установка продолжается — не выключайте компьютер."); color: "#cccccc"; font.pixelSize: 19; wrapMode: Text.WordWrap; horizontalAlignment: Text.AlignHCenter }
         }
     }

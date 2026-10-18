@@ -3,7 +3,7 @@ set -eu
 umask 077
 file="$(mktemp "${HOME}/erodist-report.XXXXXX.txt")"
 {
-  echo 'EroDist 0.4.0 diagnostic report'
+  echo 'EroDist 0.5.0 diagnostic report'
   date -u
   uname -srmo
   cat /etc/os-release

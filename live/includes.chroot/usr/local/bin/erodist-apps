@@ -23,11 +23,16 @@ def plan(packages):
     if any(line.startswith('Remv ') for line in result.stdout.splitlines()):
         raise RuntimeError('План требует удаления пакетов. Используйте штатный менеджер пакетов для проверки.')
     size = installed = 0
-    for name, version in re.findall(r'^Inst (\S+)(?: \[[^\]]+\])? \((\S+)', result.stdout, re.M):
-        info = subprocess.run(['apt-cache', 'show', f'{name}={version}'], env=env,
-                              capture_output=True, text=True, timeout=30, check=True).stdout
-        size += int(re.search(r'^Size: (\d+)$', info, re.M).group(1))
-        installed += int(re.search(r'^Installed-Size: (\d+)$', info, re.M).group(1)) * 1024
+    specs = [f'{name}={version}' for name, version in re.findall(r'^Inst (\S+)(?: \[[^\]]+\])? \((\S+)', result.stdout, re.M)]
+    if specs:
+        # A Wine plan may contain hundreds of packages; query APT in one process.
+        info = subprocess.run(['apt-cache', 'show', '--no-all-versions', *dict.fromkeys(specs)], env=env,
+                              capture_output=True, text=True, timeout=90, check=True).stdout
+        for record in info.strip().split('\n\n'):
+            download = re.search(r'^Size: (\d+)$', record, re.M)
+            disk = re.search(r'^Installed-Size: (\d+)$', record, re.M)
+            size += int(download.group(1)) if download else 0
+            installed += int(disk.group(1)) * 1024 if disk else 0
     return (f'Источник: настроенные репозитории APT (по умолчанию Debian).\n'
             f'Загрузка: до {size / 1048576:.1f} МиБ, установленный объём новых версий: {installed / 1048576:.1f} МиБ.\n'
             'Оценка по локальному индексу APT, без вычитания старых версий и кэша.\n'
@@ -111,5 +116,12 @@ class Catalog(Gtk.Window):
 
 
 if __name__ == '__main__':
-    Catalog().show_all()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--app', choices=list(CATALOG))
+    args = parser.parse_args()
+    window = Catalog()
+    if args.app:
+        window.select.set_active_id(args.app)
+    window.show_all()
     Gtk.main()
