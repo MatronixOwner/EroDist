@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=EroDist Welcome
+Name[ru]=Добро пожаловать в EroDist
+Exec=erodist-welcome --autostart
+Icon=distributor-logo
+OnlyShowIn=XFCE;

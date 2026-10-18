@@ -28,3 +28,15 @@ firmware-atheros
 ca-certificates
 curl
 less
+python3-gi
+gir1.2-gtk-3.0
+arc-theme
+papirus-icon-theme
+fonts-dejavu
+librsvg2-common
+xfce4-xkb-plugin
+gnome-packagekit
+packagekit
+policykit-1-gnome
+pciutils
+xdg-utils

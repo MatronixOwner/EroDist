@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=EroDist Welcome
+Name[ru]=Добро пожаловать в EroDist
+Comment=Installation, updates and diagnostics
+Comment[ru]=Установка, обновления и диагностика
+Exec=erodist-welcome
+Icon=distributor-logo
+Categories=System;Settings;
+Terminal=false
