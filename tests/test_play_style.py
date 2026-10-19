@@ -54,7 +54,7 @@ class PlayTests(unittest.TestCase):
 class StyleTests(unittest.TestCase):
     def test_theme_references(self):
         css = LIVE / 'usr/share/themes/EroDist-Black/gtk-3.0/gtk.css'
-        self.assertIn('Arc-Dark/gtk-3.0/gtk.css', css.read_text())
+        self.assertIn('Adwaita/gtk-contained-dark.css', css.read_text())
         self.assertIn('EroDist-Black', (LIVE / 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml').read_text())
         self.assertIn('EroDist-Black', (LIVE / 'etc/lightdm/lightdm-gtk-greeter.conf.d/50-erodist.conf').read_text())
 

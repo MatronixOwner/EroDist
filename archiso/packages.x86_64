@@ -35,7 +35,6 @@ alsa-utils
 python
 python-gobject
 gtk3
-arc-gtk-theme
 papirus-icon-theme
 ttf-dejavu
 librsvg

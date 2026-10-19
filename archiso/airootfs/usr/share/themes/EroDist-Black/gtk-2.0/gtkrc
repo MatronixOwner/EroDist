@@ -1,2 +1,9 @@
-include "../../Arc-Dark/gtk-2.0/gtkrc"
-gtk-color-scheme = "bg_color:#171717\nfg_color:#ededed\nbase_color:#101010\ntext_color:#ededed\nselected_bg_color:#505050\nselected_fg_color:#ffffff\ntooltip_bg_color:#292929\ntooltip_fg_color:#ededed"
+style "erodist-black" {
+  bg[NORMAL] = "#171717"
+  fg[NORMAL] = "#ededed"
+  base[NORMAL] = "#101010"
+  text[NORMAL] = "#ededed"
+  bg[SELECTED] = "#505050"
+  fg[SELECTED] = "#ffffff"
+}
+class "*" style "erodist-black"

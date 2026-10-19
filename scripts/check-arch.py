@@ -8,6 +8,7 @@ import sys
 profile = Path(sys.argv[1])
 config = str(profile / 'pacman.conf')
 root = profile / 'airootfs'
+subprocess.run(['pacman', '--config', config, '-Sp', '--print-format', '%n', '--', *[p for p in (profile / 'packages.x86_64').read_text().splitlines() if p]], check=True)
 for app in json.loads((root / 'usr/share/erodist/apps.json').read_text()).values():
     subprocess.run(['pacman', '--config', config, '-Sp', '--print-format', '%n %v %s', '--', *app['packages']], check=True)
 # Import the custom profile through the installed official API without touching disks.

@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=X-GNOME-Metatheme
 Name=EroDist Black
-Comment=Monochrome dark styling based on the installed Arc-Dark theme
+Comment=Monochrome dark styling based on built-in Adwaita-dark
 
 [X-GNOME-Metatheme]
 GtkTheme=EroDist-Black
-MetacityTheme=Arc-Dark
+MetacityTheme=Default
 IconTheme=Papirus-Dark
 CursorTheme=Adwaita

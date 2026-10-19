@@ -26,10 +26,7 @@ class EroDistProfile(Profile):
             handle.write('\nru_RU.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\n')
         install_session.arch_chroot('locale-gen')
         theme = target / 'usr/share/themes'
-        shutil.copytree(theme / 'Arc-Dark/xfwm4', theme / 'EroDist-Black/xfwm4', dirs_exist_ok=True)
-        resource = theme / 'Arc-Dark/gtk-3.0/gtk.gresource'
-        if resource.is_file():
-            shutil.copy2(resource, theme / 'EroDist-Black/gtk-3.0/gtk.gresource')
+        shutil.copytree(theme / 'Default/xfwm4', theme / 'EroDist-Black/xfwm4', dirs_exist_ok=True)
         install_session.enable_service(['NetworkManager', 'lightdm'])
         install_session.arch_chroot('systemctl set-default graphical.target')
         # Multilib is official; enable it for Steam, never add AUR or third-party repos.
