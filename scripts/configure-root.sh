@@ -17,13 +17,16 @@ mkdir -p "$ROOTFS/dev" "$ROOTFS/proc" "$ROOTFS/tmp/.X11-unix" /tmp/.X11-unix
 cleanup() {
   umount "$ROOTFS/tmp/.X11-unix" 2>/dev/null || true
   umount "$ROOTFS/proc" 2>/dev/null || true
+  umount "$ROOTFS/dev/pts" 2>/dev/null || true
   umount "$ROOTFS/dev" 2>/dev/null || true
   rm -f "$ROOTFS/etc/resolv.conf" "$ROOTFS/usr/sbin/policy-rc.d"
   if [[ -e "$WORK/original-resolv.conf" || -L "$WORK/original-resolv.conf" ]]; then cp -a "$WORK/original-resolv.conf" "$ROOTFS/etc/resolv.conf"; fi
   if [[ -e "$WORK/original-policy-rc.d" ]]; then cp -a "$WORK/original-policy-rc.d" "$ROOTFS/usr/sbin/policy-rc.d"; fi
 }
 trap cleanup EXIT
+chmod 1777 "$ROOTFS/tmp/.X11-unix"
 mount --bind /dev "$ROOTFS/dev"
+mount --bind /dev/pts "$ROOTFS/dev/pts"
 mount -t proc proc "$ROOTFS/proc"
 mount --bind /tmp/.X11-unix "$ROOTFS/tmp/.X11-unix"
 chroot "$ROOTFS" dpkg --add-architecture i386

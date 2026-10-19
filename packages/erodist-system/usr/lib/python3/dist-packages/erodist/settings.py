@@ -58,7 +58,7 @@ def main():
     page('system', 'Система', [('Обновления', ['mintupdate']), ('Приложения', ['mintinstall']), ('Источники пакетов', ['mintsources']), ('Драйверы', ['mintdrivers'])])
     page('personal', 'Оформление', [('Темы и значки', ['cinnamon-settings', 'themes']), ('Обои', ['cinnamon-settings', 'backgrounds']), ('Панель', ['cinnamon-settings', 'panel']), ('Шрифты', ['cinnamon-settings', 'fonts'])])
     page('devices', 'Устройства', [('Дисплеи', ['cinnamon-settings', 'display']), ('Звук', ['cinnamon-settings', 'sound']), ('Клавиатура', ['cinnamon-settings', 'keyboard']), ('Мышь и тачпад', ['cinnamon-settings', 'mouse']), ('Питание', ['cinnamon-settings', 'power'])])
-    page('network', 'Сеть и доступ', [('Сеть', ['cinnamon-settings', 'network']), ('Bluetooth', ['cinnamon-settings', 'bluetooth']), ('Пользователи', ['cinnamon-settings', 'user']), ('Конфиденциальность', ['cinnamon-settings', 'privacy'])])
+    page('network', 'Сеть и доступ', [('Сеть', ['cinnamon-settings', 'network']), ('Bluetooth', ['blueman-manager']), ('Пользователи', ['cinnamon-settings-users']), ('Конфиденциальность', ['cinnamon-settings', 'privacy'])])
     box = page('about', 'О системе', [])
     view = Gtk.TextView(editable=False, cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD_CHAR)
     view.set_top_margin(12)

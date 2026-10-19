@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
 if [ "$1" = configure ]; then
-    debconf-loadtemplate erodist-installer /var/lib/dpkg/info/erodist-installer.templates
+    # Standard debconf frontend loads this package's DEBIAN/templates.
+    . /usr/share/debconf/confmodule
+    db_stop
 fi
