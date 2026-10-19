@@ -1,0 +1,26 @@
+{
+  "home": {
+    "name": "EroDist Home",
+    "description": "Повседневные задачи: браузер, видео, соцсети и офис из стандартного набора Mint. Для новичков.",
+    "packages": [],
+    "extra_free_gib": 1,
+    "recommended_disk_gib": 30,
+    "requires_network": false
+  },
+  "pro": {
+    "name": "EroDist Pro",
+    "description": "Повседневная работа и игры: Steam, GameMode, MangoHud, Mesa/Vulkan 32/64 бит. Игры и Proton скачиваются в Steam отдельно. Совместимость античитов не гарантируется.",
+    "packages": ["steam-installer", "gamemode", "mangohud", "mesa-vulkan-drivers", "mesa-vulkan-drivers:i386", "libgl1-mesa-dri:i386"],
+    "extra_free_gib": 5,
+    "recommended_disk_gib": 60,
+    "requires_network": true
+  },
+  "program": {
+    "name": "EroDist Program",
+    "description": "Разработка приложений и игр: Git, Python/pip/venv/Tk, C/C++, Clang, CMake, Ninja, GDB, Node.js/npm, Geany, Godot 3 и Blender из репозиториев Mint/Ubuntu. Не включает Unity и Unreal.",
+    "packages": ["git", "python3", "python3-pip", "python3-venv", "python3-tk", "build-essential", "clang", "cmake", "ninja-build", "gdb", "pkg-config", "nodejs", "npm", "geany", "godot3", "blender"],
+    "extra_free_gib": 12,
+    "recommended_disk_gib": 70,
+    "requires_network": true
+  }
+}

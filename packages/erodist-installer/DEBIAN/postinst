@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+if [ "$1" = configure ]; then
+    debconf-loadtemplate erodist-installer /var/lib/dpkg/info/erodist-installer.templates
+fi

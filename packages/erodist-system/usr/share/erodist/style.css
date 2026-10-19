@@ -1,0 +1,17 @@
+.erodist-window { background: #101114; color: #eeeeef; border-radius: 14px; }
+.erodist-window headerbar { background: #17181d; color: #fff; border: none; box-shadow: none; border-radius: 14px 14px 0 0; }
+.erodist-window .sidebar { background: #17181d; padding: 12px; border-radius: 10px; }
+.erodist-window .card { background: #202128; border: 1px solid #3c3e49; border-radius: 12px; padding: 14px; }
+.erodist-window button { border-radius: 9px; padding: 10px 14px; }
+.erodist-window button.suggested-action { background: #e3e4e9; color: #111217; border: 1px solid #fff; }
+.erodist-window button:focus { outline: 2px solid #c6c8d2; outline-offset: 2px; }
+.erodist-window .title { font-size: 24px; font-weight: bold; }
+.erodist-window .muted { color: #b8bac4; }
+/* Scoped Ubiquity page: retains stock partition widgets and confirmation logic. */
+.erodist-editions { background: #15161a; color: #eeeeef; padding: 18px; border-radius: 14px; }
+.erodist-editions .card { background: #23252b; border: 1px solid #4a4c57; border-radius: 12px; padding: 12px; }
+.erodist-editions .title { font-size: 24px; font-weight: bold; }
+
+.erodist-installer { background: #15161a; color: #eeeeef; }
+.erodist-installer button { border-radius: 9px; padding: 8px 12px; }
+.erodist-installer entry { border-radius: 8px; }

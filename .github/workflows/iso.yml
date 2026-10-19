@@ -1,0 +1,63 @@
+name: Build EroDist Mint ISO
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['mint/**', 'packages/**', 'scripts/**', 'tests/**', '.github/workflows/iso.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  checks: write
+concurrency:
+  group: erodist-iso-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - name: Test verified remaster and ISO assembly helpers
+        run: python3 -m unittest discover -s tests -v
+      - name: Prepare ephemeral build runner
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools dconf-cli gnupg curl xvfb xauth
+          df -h .
+      - name: Verify original Mint and build Cinnamon editions image
+        run: |
+          set -o pipefail
+          sudo bash scripts/build.sh 2>&1 | tee /tmp/erodist-build.log
+      - name: Verify all downloadable assets and size limits
+        run: |
+          (cd artifacts && sha256sum -c SHA256SUMS)
+          python3 - <<'PY'
+          from pathlib import Path
+          files=list(Path('artifacts').iterdir())
+          assert any(p.name.endswith('.iso') or '.iso.part' in p.name for p in files)
+          for p in files:
+              assert p.stat().st_size < 2147483648, f'Asset exceeds GitHub limit: {p}'
+          PY
+      - name: Publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="test-0.9.0-mint1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$tag" artifacts/* --target "$GITHUB_SHA" --prerelease \
+            --title "EroDist 0.9 Home / Pro / Program — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Тестовая EroDist 0.9 на Linux Mint 22.3 Cinnamon. Установщик Mint с новым шагом Home / Pro / Program, системный пакет EroDist и центр настроек. Создатель: d50130483-ship-it. Pro скачивает Steam, GameMode, MangoHud и библиотеки Mesa; Program — инструменты разработки, Godot 3 и Blender. Нужен интернет для Pro/Program, согласие Valve для Pro. Выбор диска и загрузчик выполняет штатный Ubiquity, не самописная разметка. Полная установка редакций ещё не протестирована. Сначала пустая VM, резервные копии и Secure Boot off. ISO разделён по лимиту GitHub: все .partNN + ASSEMBLY.json + assemble.ps1 + assemble.cmd в одну папку, затем assemble.cmd. Подробности DOWNLOAD.txt. Commit: ${GITHUB_SHA}."
+      - name: Attach failure diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "build") | .id' | head -1)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          log=Path('/tmp/erodist-build.log')
+          text=log.read_text(errors='replace')[-45000:] if log.exists() else 'Failed before ISO build; see workflow steps.'
+          Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title':'Mint remaster failure','summary':'See diagnostic tail below.','text':'```text\n'+text+'\n```'}}))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/check-output.json

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+    if [ -f /etc/dconf/profile/user ]; then
+        sed -i '/^system-db:erodist$/d' /etc/dconf/profile/user
+    fi
+    if command -v dconf >/dev/null; then dconf update; fi
+fi

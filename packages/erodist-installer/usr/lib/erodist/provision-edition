@@ -1,0 +1,108 @@
+#!/usr/bin/python3 -I
+"""Called only by Ubiquity; no disk formatting or arbitrary target/commands."""
+import datetime
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+from erodist.editions import catalog, validate_selection, apt_install_command
+
+TARGET = Path('/target')
+SELECTION = Path('/run/erodist/selection.json')
+
+
+def atomic_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(dir=path.parent, prefix='.erodist-')
+    with os.fdopen(fd, 'w') as stream:
+        json.dump(value, stream, ensure_ascii=False, indent=2)
+        stream.write('\n')
+    os.chmod(name, 0o644)
+    os.replace(name, path)
+
+
+def run_in_target(args, log, input=None):
+    env = dict(os.environ, DEBIAN_FRONTEND='noninteractive', LC_ALL='C')
+    subprocess.run(['chroot', '/target', '/usr/bin/env', 'DEBIAN_FRONTEND=noninteractive', *args],
+                   env=env, input=input, text=True, stdout=log, stderr=subprocess.STDOUT,
+                   timeout=7200, check=True)
+
+
+def main():
+    if os.geteuid() != 0 or len(sys.argv) != 1:
+        sys.exit('Only Ubiquity may call this worker as root without arguments')
+    if not os.path.ismount('/target') or TARGET.resolve() != Path('/target'):
+        sys.exit('No mounted installation target')
+    if not (TARGET / 'usr/share/erodist/base.json').is_file():
+        sys.exit('Target is missing erodist-system')
+    st = SELECTION.stat()
+    if st.st_uid != 0 or st.st_mode & 0o022:
+        sys.exit('Insecure selection file')
+    selection = json.loads(SELECTION.read_text())
+    key = validate_selection(selection)
+    entry = catalog()[key]
+    state = {'edition': key, 'status': 'installing', 'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    marker = TARGET / 'var/lib/erodist/installation.json'
+    atomic_json(marker, state)
+    log_path = TARGET / 'var/log/installer/erodist-edition.log'
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, 'w') as log:
+            log.write(f"EroDist edition {key}\nPackages: {entry['packages']}\n")
+            log.flush()
+            if shutil.disk_usage(TARGET).free < entry['extra_free_gib'] * 1024**3:
+                raise RuntimeError('Not enough free target disk space for edition')
+            packages = entry['packages']
+            if key == 'pro':
+                run_in_target(['dpkg', '--add-architecture', 'i386'], log)
+                # The selection UI explicitly requires acceptance before this preseed.
+                run_in_target(['debconf-set-selections'], log,
+                              'steam steam/question select I AGREE\nsteam steam/license note\n')
+            if packages:
+                run_in_target(['apt-get', '-o', 'APT::Update::Error-Mode=any', '-o', 'Acquire::Retries=2', '-o', 'Acquire::http::Timeout=30', '-o', 'Acquire::https::Timeout=30', 'update'], log)
+                run_in_target(['apt-get', '-s', '--no-remove', 'install', '--', *packages], log)
+                run_in_target(apt_install_command(packages), log)
+                # Verify package state before recording success.
+                for package in packages:
+                    result = subprocess.run(['chroot', '/target', 'dpkg-query', '-W', '-f=${db:Status-Status}', package],
+                                            capture_output=True, text=True, timeout=30, check=True)
+                    if result.stdout.strip() != 'installed':
+                        raise RuntimeError('Package is not installed: ' + package)
+            if key == 'program':
+                config = TARGET / 'etc/dconf/db/erodist.d/70-program-terminal'
+                config.parent.mkdir(parents=True, exist_ok=True)
+                config.write_text("""[org/gnome/terminal/legacy/profiles:]
+list=['e0d15700-0000-4000-8000-000000000009']
+default='e0d15700-0000-4000-8000-000000000009'
+
+[org/gnome/terminal/legacy/profiles:/:e0d15700-0000-4000-8000-000000000009]
+visible-name='EroDist Program'
+use-theme-colors=false
+background-color='rgb(16,17,20)'
+foreground-color='rgb(230,230,232)'
+use-system-font=false
+font='DejaVu Sans Mono 11'
+audible-bell=false
+scrollback-lines=10000
+""")
+                run_in_target(['dconf', 'update'], log)
+            state['status'] = 'complete'
+            state['updated_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            atomic_json(marker, state)
+            log.write('Edition provisioning completed successfully.\n')
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+        state.update(status='failed', error=str(exc))
+        atomic_json(marker, state)
+        with log_path.open('a') as log:
+            log.write('FAILED: ' + str(exc) + '\n')
+        print(f'EroDist {key} provisioning failed. See {log_path}', file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

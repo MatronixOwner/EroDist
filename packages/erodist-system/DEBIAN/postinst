@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+if [ "$1" = configure ]; then
+    mkdir -p /etc/dconf/profile
+    python3 - <<'PY'
+from pathlib import Path
+p = Path('/etc/dconf/profile/user')
+lines = p.read_text().splitlines() if p.exists() else ['user-db:user']
+lines = [line for line in lines if line != 'system-db:erodist']
+index = next((i + 1 for i, line in enumerate(lines) if line.startswith('user-db:')), 0)
+lines.insert(index, 'system-db:erodist')
+p.write_text('\n'.join(lines) + '\n')
+PY
+    dconf update
+fi
