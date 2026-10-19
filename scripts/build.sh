@@ -18,11 +18,23 @@ cat "$ROOT/archiso/packages.x86_64" > "$PROFILE/packages.x86_64"
 grep -E '^(archiso|mkinitcpio|mkinitcpio-archiso|syslinux|edk2-shell|efibootmgr|dosfstools|e2fsprogs|btrfs-progs|grub|memtest86\+|memtest86\+-efi|dmidecode|smartmontools|parted|cryptsetup|squashfs-tools|nvme-cli|openssh)$' /usr/share/archiso/configs/releng/packages.x86_64 >> "$PROFILE/packages.x86_64"
 sort -u -o "$PROFILE/packages.x86_64" "$PROFILE/packages.x86_64"
 # Official signed repositories, including multilib for Steam. Never use partial upgrades.
-cp /etc/pacman.conf "$PROFILE/pacman.conf"
+# Keep releng pacman.conf: Docker's config excludes locales and mirrorlists.
 if ! grep -q '^\[multilib\]' "$PROFILE/pacman.conf"; then
   printf '\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> "$PROFILE/pacman.conf"
 fi
 cp "$PROFILE/pacman.conf" "$PROFILE/airootfs/etc/pacman.conf"
+printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n' > "$PROFILE/airootfs/etc/pacman.d/mirrorlist"
+# ISO/USB boot only: PXE hooks need extra NFS/NBD clients that this image does not ship.
+python3 - "$PROFILE/airootfs/etc/mkinitcpio.conf.d/archiso.conf" <<'PYCONF'
+from pathlib import Path
+import re
+import sys
+p = Path(sys.argv[1])
+s = re.sub(r'archiso_pxe_\w+ ?', '', p.read_text())
+s = re.sub(r'COMPRESSION=".*"', 'COMPRESSION="zstd"', s)
+s = re.sub(r'COMPRESSION_OPTIONS=.*', 'COMPRESSION_OPTIONS=(-6)', s)
+p.write_text(s)
+PYCONF
 cat >> "$PROFILE/profiledef.sh" <<'PROFILEDEF'
 iso_name="erodist"
 iso_label="ERODIST_ARCH"

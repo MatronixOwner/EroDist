@@ -34,6 +34,23 @@ jobs:
               pacman -Syu --noconfirm archiso archinstall python
               bash scripts/build.sh
             ' 2>&1 | tee /tmp/erodist-build.log
+      - name: Check ISO and release size limit
+        run: |
+          test -s artifacts/erodist-0.7.0-arch1-x86_64.iso
+          (cd artifacts && sha256sum -c SHA256SUMS)
+          stat -c "ISO bytes: %s" artifacts/*.iso | tee -a /tmp/erodist-build.log
+          test "$(stat -c %s artifacts/erodist-0.7.0-arch1-x86_64.iso)" -lt 2147483648
+          file artifacts/*.iso
+      - name: Publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="test-0.7.0-arch1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$tag" artifacts/*.iso artifacts/SHA256SUMS \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "EroDist 0.7.0-arch1 — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Тестовая новая база Arch Linux / XFCE, x86_64. Установщик: текстовый Archinstall с профилем EroDist XFCE, нужен интернет. Не обновляет Debian-установку. BIOS и UEFI (Secure Boot отключить). Пользователь: tester, пароль: live. Начните с VM: 2 CPU, 4 GB RAM, 25 GB диск. Установка может удалить данные! Проверяйте SHA256SUMS. Исходный commit: ${GITHUB_SHA}. Загрузка, установка и Hyper-V ещё требуют ручной проверки."
       - name: Attach failure details to check
         if: failure()
         env:
@@ -47,19 +64,3 @@ jobs:
           Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title': 'ISO build failure', 'summary': 'Build failed; diagnostic tail below.', 'text': '```text\n' + text + '\n```'}}))
           PYTHON
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/check-output.json
-      - name: Check ISO and release size limit
-        run: |
-          test -s artifacts/erodist-0.7.0-arch1-x86_64.iso
-          (cd artifacts && sha256sum -c SHA256SUMS)
-          test "$(stat -c %s artifacts/erodist-0.7.0-arch1-x86_64.iso)" -lt 2147483648
-          file artifacts/*.iso
-      - name: Publish test release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          tag="test-0.7.0-arch1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
-          gh release create "$tag" artifacts/*.iso artifacts/SHA256SUMS \
-            --target "$GITHUB_SHA" --prerelease \
-            --title "EroDist 0.7.0-arch1 — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
-            --notes "Тестовая новая база Arch Linux / XFCE, x86_64. Установщик: текстовый Archinstall с профилем EroDist XFCE, нужен интернет. Не обновляет Debian-установку. BIOS и UEFI (Secure Boot отключить). Пользователь: tester, пароль: live. Начните с VM: 2 CPU, 4 GB RAM, 25 GB диск. Установка может удалить данные! Проверяйте SHA256SUMS. Исходный commit: ${GITHUB_SHA}. Загрузка, установка и Hyper-V ещё требуют ручной проверки."
