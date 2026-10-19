@@ -1,9 +1,0 @@
-style "erodist-black" {
-  bg[NORMAL] = "#171717"
-  fg[NORMAL] = "#ededed"
-  base[NORMAL] = "#101010"
-  text[NORMAL] = "#ededed"
-  bg[SELECTED] = "#505050"
-  fg[SELECTED] = "#ffffff"
-}
-class "*" style "erodist-black"

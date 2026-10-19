@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Windows-программы (Wine)
-Exec=erodist-wine %f
-Icon=application-x-executable
-Categories=System;Utility;
-Terminal=false
-MimeType=application/x-ms-dos-executable;application/x-msdownload;application/vnd.microsoft.portable-executable;

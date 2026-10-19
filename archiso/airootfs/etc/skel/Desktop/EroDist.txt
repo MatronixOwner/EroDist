@@ -1,4 +1,0 @@
-EroDist 0.7 Arch: Live tester / live.
-Откройте приветствие. Установщик: текстовый Archinstall с профилем EroDist XFCE.
-Только пустая VM для первого теста! Нужен интернет.
-Инструкция: /usr/share/erodist/guide.html

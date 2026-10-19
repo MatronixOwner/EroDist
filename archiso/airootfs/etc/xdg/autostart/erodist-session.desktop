@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=EroDist desktop defaults
-Exec=erodist-session
-OnlyShowIn=XFCE;
-NoDisplay=true

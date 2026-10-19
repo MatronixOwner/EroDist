@@ -1,9 +1,0 @@
-[Trigger]
-Operation = Install
-Type = Package
-Target = glibc
-
-[Action]
-Description = Configure EroDist image locale and theme
-When = PostTransaction
-Exec = /usr/local/libexec/erodist-image-setup

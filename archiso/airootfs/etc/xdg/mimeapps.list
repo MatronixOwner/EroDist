@@ -1,9 +1,0 @@
-[Default Applications]
-application/x-ms-dos-executable=erodist-wine.desktop
-application/x-msdownload=erodist-wine.desktop
-application/vnd.microsoft.portable-executable=erodist-wine.desktop
-
-[Added Associations]
-application/x-ms-dos-executable=erodist-wine.desktop;
-application/x-msdownload=erodist-wine.desktop;
-application/vnd.microsoft.portable-executable=erodist-wine.desktop;

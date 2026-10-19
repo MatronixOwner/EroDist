@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=PolicyKit authentication agent
-Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-OnlyShowIn=XFCE;
-NoDisplay=true

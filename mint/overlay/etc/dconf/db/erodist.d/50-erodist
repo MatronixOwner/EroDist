@@ -1,0 +1,10 @@
+[org/cinnamon/desktop/background]
+picture-uri='file:///usr/share/backgrounds/erodist/black-gradient.png'
+picture-options='zoom'
+
+[org/cinnamon/desktop/interface]
+gtk-theme='Mint-Y-Dark'
+icon-theme='Mint-Y-Dark'
+
+[org/cinnamon/theme]
+name='Mint-Y-Dark'

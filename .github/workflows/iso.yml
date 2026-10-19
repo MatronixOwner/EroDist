@@ -1,13 +1,8 @@
-name: Build EroDist ISO
+name: Build EroDist Mint ISO
 on:
   push:
     branches: [arena/a42c77fd-erodist]
-    paths:
-      - 'archiso/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'scripts/build.sh'
-      - '.github/workflows/iso.yml'
+    paths: ['mint/**', 'scripts/**', 'tests/**', '.github/workflows/iso.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -21,46 +16,48 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
-      - name: Validate source configuration
+      - name: Test verified remaster and ISO assembly helpers
         run: python3 -m unittest discover -s tests -v
-      - name: Build Arch Linux ISO in privileged container
+      - name: Prepare ephemeral build runner
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools dconf-cli gnupg curl
+          df -h .
+      - name: Verify original Mint and build minimal Cinnamon remaster
         run: |
           set -o pipefail
-          docker run --rm --privileged \
-            -v "$PWD:/workspace" -w /workspace \
-            archlinux:latest bash -euxo pipefail -c '
-              pacman-key --init
-              pacman-key --populate archlinux
-              pacman -Syu --noconfirm archiso archinstall python
-              bash scripts/build.sh
-            ' 2>&1 | tee /tmp/erodist-build.log
-      - name: Check ISO and release size limit
+          sudo bash scripts/build.sh 2>&1 | tee /tmp/erodist-build.log
+      - name: Verify all downloadable assets and size limits
         run: |
-          test -s artifacts/erodist-0.7.0-arch1-x86_64.iso
           (cd artifacts && sha256sum -c SHA256SUMS)
-          stat -c "ISO bytes: %s" artifacts/*.iso | tee -a /tmp/erodist-build.log
-          test "$(stat -c %s artifacts/erodist-0.7.0-arch1-x86_64.iso)" -lt 2147483648
-          file artifacts/*.iso
+          python3 - <<'PY'
+          from pathlib import Path
+          files=list(Path('artifacts').iterdir())
+          assert any(p.name.endswith('.iso') or '.iso.part' in p.name for p in files)
+          for p in files:
+              assert p.stat().st_size < 2147483648, f'Asset exceeds GitHub limit: {p}'
+          PY
       - name: Publish test release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          tag="test-0.7.0-arch1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
-          gh release create "$tag" artifacts/*.iso artifacts/SHA256SUMS \
-            --target "$GITHUB_SHA" --prerelease \
-            --title "EroDist 0.7.0-arch1 — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
-            --notes "Тестовая новая база Arch Linux / XFCE, x86_64. Установщик: текстовый Archinstall с профилем EroDist XFCE, нужен интернет. Не обновляет Debian-установку. BIOS и UEFI (Secure Boot отключить). Пользователь: tester, пароль: live. Начните с VM: 2 CPU, 4 GB RAM, 25 GB диск. Установка может удалить данные! Проверяйте SHA256SUMS. Исходный commit: ${GITHUB_SHA}. Загрузка, установка и Hyper-V ещё требуют ручной проверки."
-      - name: Attach failure details to check
+          tag="test-0.8.0-mint1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$tag" artifacts/* --target "$GITHUB_SHA" --prerelease \
+            --title "EroDist 0.8 Mint Cinnamon — test ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Новая минимальная производная сборка Linux Mint 22.3 Cinnamon. Не официальный образ Mint. Штатный установщик и программы Mint, чёрные обои EroDist. Старые компоненты Arch/самописные установщики не включены. Исходный ISO проверен по подписи и SHA256; производный ISO имеет собственный SHA256. ВАЖНО: ISO больше лимита одного файла GitHub, смотрите DOWNLOAD.txt: скачайте все части .partNN, ASSEMBLY.json, assemble.ps1 и assemble.cmd в одну папку и запустите assemble.cmd в Windows. Части по отдельности не загрузочные. Secure Boot отключить. Сначала новая VM и пустой диск; установка может удалить данные. Загрузка, установка и скорость Hyper-V ещё не проверены вручную. Commit: ${GITHUB_SHA}."
+      - name: Attach failure diagnostics
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "build") | .id' | head -1)
-          python3 - <<'PYTHON'
+          python3 - <<'PY'
           import json
           from pathlib import Path
-          text = Path('/tmp/erodist-build.log').read_text(errors='replace')[-45000:]
-          Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title': 'ISO build failure', 'summary': 'Build failed; diagnostic tail below.', 'text': '```text\n' + text + '\n```'}}))
-          PYTHON
+          log=Path('/tmp/erodist-build.log')
+          text=log.read_text(errors='replace')[-45000:] if log.exists() else 'Failed before ISO build; see workflow steps.'
+          Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title':'Mint remaster failure','summary':'See diagnostic tail below.','text':'```text\n'+text+'\n```'}}))
+          PY
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/check-output.json

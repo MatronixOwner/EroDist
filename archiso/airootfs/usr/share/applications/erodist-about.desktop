@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=О системе EroDist
-Exec=erodist-about
-Icon=help-about
-Categories=System;Utility;
-Terminal=false

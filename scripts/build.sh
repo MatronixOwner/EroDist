@@ -2,88 +2,94 @@
 set -euo pipefail
 export LC_ALL=C
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[[ $EUID -eq 0 ]] || { echo 'Build inside privileged Arch Linux container as root.' >&2; exit 1; }
-command -v mkarchiso >/dev/null
-VERSION=0.7.0-arch1
-PROFILE="$ROOT/build/profile"
-[[ ! -e "$PROFILE" ]] || { echo 'Use a fresh build directory for archiso.' >&2; exit 1; }
-mkdir -p "$ROOT/build" "$ROOT/artifacts"
-cp -a /usr/share/archiso/configs/releng "$PROFILE"
-# Keep upstream boot configuration/kernel hooks; remove unneeded rescue services.
-rm -rf "$PROFILE/airootfs/etc/systemd/system" "$PROFILE/airootfs/etc/systemd/network"
-rm -f "$PROFILE/airootfs/etc/resolv.conf"
-cp -a "$ROOT/archiso/airootfs/." "$PROFILE/airootfs/"
-cat "$ROOT/archiso/packages.x86_64" > "$PROFILE/packages.x86_64"
-# archiso's required boot/runtime tools, sourced from its maintained releng list.
-grep -E '^(archiso|mkinitcpio|mkinitcpio-archiso|syslinux|edk2-shell|efibootmgr|dosfstools|e2fsprogs|btrfs-progs|grub|memtest86\+|memtest86\+-efi|dmidecode|smartmontools|parted|cryptsetup|squashfs-tools|nvme-cli|openssh)$' /usr/share/archiso/configs/releng/packages.x86_64 >> "$PROFILE/packages.x86_64"
-sort -u -o "$PROFILE/packages.x86_64" "$PROFILE/packages.x86_64"
-# Official signed repositories, including multilib for Steam. Never use partial upgrades.
-# Keep releng pacman.conf: Docker's config excludes locales and mirrorlists.
-if ! grep -q '^\[multilib\]' "$PROFILE/pacman.conf"; then
-  printf '\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> "$PROFILE/pacman.conf"
-fi
-cp "$PROFILE/pacman.conf" "$PROFILE/airootfs/etc/pacman.conf"
-printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n' > "$PROFILE/airootfs/etc/pacman.d/mirrorlist"
-# ISO/USB boot only: PXE hooks need extra NFS/NBD clients that this image does not ship.
-python3 - "$PROFILE/airootfs/etc/mkinitcpio.conf.d/archiso.conf" <<'PYCONF'
+[[ $EUID -eq 0 ]] || { echo 'Run as root on Ubuntu 24.04 build runner.' >&2; exit 1; }
+WORK="$ROOT/build/mint"
+[[ ! -e "$WORK" ]] || { echo 'Fresh build directory required.' >&2; exit 1; }
+mkdir -p "$WORK/source" "$WORK/changed/casper" "$ROOT/artifacts"
+mapfile -t CONFIG < <(python3 - "$ROOT/mint/source.json" <<'PY'
+import json, sys
+c=json.load(open(sys.argv[1]))
+for key in ['filename','mirror','signing_fingerprint','output']: print(c[key])
+PY
+)
+SOURCE="${CONFIG[0]}"; MIRROR="${CONFIG[1]}"; FINGERPRINT="${CONFIG[2]}"; OUTPUT="${CONFIG[3]}"
+cd "$WORK/source"
+for filename in sha256sum.txt sha256sum.txt.gpg "$SOURCE"; do
+  curl --fail --location --retry 3 --connect-timeout 30 --output "$filename" "$MIRROR/$filename"
+done
+# Authenticate upstream before extracting anything. Never accept an unpinned signing key.
+export GNUPGHOME="$WORK/gnupg"
+mkdir -m 700 "$GNUPGHOME"
+curl --fail --location --retry 3 --output "$WORK/mint-key.asc" "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$FINGERPRINT"
+gpg --batch --import "$WORK/mint-key.asc"
+actual=$(gpg --batch --with-colons --fingerprint "$FINGERPRINT" | awk -F: '$1=="fpr" {print $10; exit}')
+[[ "$actual" == "$FINGERPRINT" ]]
+gpg --batch --verify sha256sum.txt.gpg sha256sum.txt
+PYTHONPATH="$ROOT/scripts" python3 - "$SOURCE" <<'PY'
+import sys
 from pathlib import Path
-import re
+from mint_common import checksum_for, sha256
+expected=checksum_for(Path('sha256sum.txt').read_text(),sys.argv[1])
+assert sha256(sys.argv[1]) == expected, 'Upstream ISO checksum mismatch'
+print('Verified signed upstream ISO SHA256:', expected)
+PY
+ISO="$WORK/source/$SOURCE"
+xorriso -indev "$ISO" -report_el_torito plain -report_system_area plain > "$WORK/upstream-boot.txt" 2>&1
+xorriso -osirrox on -indev "$ISO" -extract /casper/filesystem.squashfs "$WORK/original.squashfs" -extract /md5sum.txt "$WORK/original-md5sum.txt"
+unsquashfs -d "$WORK/rootfs" "$WORK/original.squashfs"
+rm "$WORK/original.squashfs"
+cp -a "$ROOT/mint/overlay/." "$WORK/rootfs/"
+# Preserve upstream profile configuration and add one defaults database, not locks.
+mkdir -p "$WORK/rootfs/etc/dconf/profile" "$WORK/rootfs/etc/dconf/db"
+PROFILE="$WORK/rootfs/etc/dconf/profile/user"
+[[ -f "$PROFILE" ]] || printf 'user-db:user\n' > "$PROFILE"
+python3 - "$PROFILE" <<'PYPROFILE'
+from pathlib import Path
 import sys
 p = Path(sys.argv[1])
-s = re.sub(r'archiso_pxe_\w+ ?', '', p.read_text())
-s = re.sub(r'COMPRESSION=".*"', 'COMPRESSION="zstd"', s)
-s = re.sub(r'COMPRESSION_OPTIONS=.*', 'COMPRESSION_OPTIONS=(-6)', s)
-p.write_text(s)
-PYCONF
-cat >> "$PROFILE/profiledef.sh" <<'PROFILEDEF'
-iso_name="erodist"
-iso_label="ERODIST_ARCH"
-iso_publisher="EroDist"
-iso_application="EroDist Arch Linux XFCE"
-iso_version="0.7.0-arch1"
-install_dir="erodist"
-airootfs_image_type="squashfs"
-# Faster decompression for Live application launch than the old XZ image.
-airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '15' '-b' '1M')
-file_permissions["/etc/sudoers.d/10-erodist"]="0:0:440"
-PROFILEDEF
-# Make target payload BEFORE adding Live services; users/passwords never copied.
-PAYLOAD="$PROFILE/airootfs/usr/share/erodist/target-overlay"
-mkdir -p "$PAYLOAD/etc" "$PAYLOAD/usr"
-for path in etc/xdg etc/skel etc/lightdm etc/default etc/erodist-version etc/sudoers.d usr/local usr/share/applications usr/share/backgrounds usr/share/themes usr/share/erodist usr/share/polkit-1; do
-  [[ -e "$PROFILE/airootfs/$path" ]] || continue
-  [[ "$path" != usr/share/erodist ]] || continue
-  mkdir -p "$PAYLOAD/$(dirname "$path")"
-  cp -a "$PROFILE/airootfs/$path" "$PAYLOAD/$path"
-done
-mkdir -p "$PAYLOAD/usr/share/erodist"
-cp "$PROFILE/airootfs/usr/share/erodist/"*.{json,html} "$PAYLOAD/usr/share/erodist/"
-# Target packages omit build/install-only tools, keep the same XFCE applications.
-grep -v -E '^(archinstall|arch-install-scripts)$' "$ROOT/archiso/packages.x86_64" > "$PROFILE/airootfs/usr/share/erodist/desktop-packages.txt"
-rm -f "$PAYLOAD/usr/local/libexec/erodist-live-setup" "$PAYLOAD/usr/local/libexec/erodist-image-setup"
-# lightdm and NetworkManager, not simultaneous networkd/resolved or root autologin.
-SYSTEM="$PROFILE/airootfs/etc/systemd/system"
-mkdir -p "$SYSTEM/multi-user.target.wants" "$SYSTEM/graphical.target.wants"
-ln -sf /usr/lib/systemd/system/NetworkManager.service "$SYSTEM/multi-user.target.wants/NetworkManager.service"
-ln -sf /usr/lib/systemd/system/systemd-timesyncd.service "$SYSTEM/multi-user.target.wants/systemd-timesyncd.service"
-ln -sf /usr/lib/systemd/system/lightdm.service "$SYSTEM/display-manager.service"
-ln -sf /usr/lib/systemd/system/graphical.target "$SYSTEM/default.target"
-ln -sf ../erodist-live-setup.service "$SYSTEM/graphical.target.wants/erodist-live-setup.service"
-ln -sf /run/NetworkManager/resolv.conf "$PROFILE/airootfs/etc/resolv.conf"
-printf 'erodist\n' > "$PROFILE/airootfs/etc/hostname"
-# Package-owned XFCE defaults must not exist during pacstrap's conflict check.
-# Apply our overrides via the image-only post-transaction hook after packages install.
-mkdir -p "$PROFILE/airootfs/usr/share/erodist/package-overrides/etc"
-mv "$PROFILE/airootfs/etc/xdg" "$PROFILE/airootfs/usr/share/erodist/package-overrides/etc/xdg"
-# Executable overlay permissions must survive mkarchiso's ownership handling.
-while IFS= read -r executable; do
-  relative="${executable#"$PROFILE/airootfs"}"
-  printf 'file_permissions["%s"]="0:0:755"\n' "$relative" >> "$PROFILE/profiledef.sh"
-done < <(find "$PROFILE/airootfs/usr/local" -type f -perm /111)
-# Fail on missing/renamed packages in the current Arch repositories, including catalog.
-pacman --config "$PROFILE/pacman.conf" -Sy --noconfirm
-python3 "$ROOT/scripts/check-arch.py" "$PROFILE"
-pacman -Q > "$ROOT/artifacts/build-tools.txt"
-mkarchiso -v -w "$ROOT/build/work" -o "$ROOT/artifacts" "$PROFILE"
-cd "$ROOT/artifacts"
-sha256sum *.iso > SHA256SUMS
+lines = [line for line in p.read_text().splitlines() if line != 'system-db:erodist']
+index = next((i + 1 for i, line in enumerate(lines) if line.startswith('user-db:')), 0)
+lines.insert(index, 'system-db:erodist')
+p.write_text('\n'.join(lines) + '\n')
+PYPROFILE
+dconf compile "$WORK/rootfs/etc/dconf/db/erodist" "$WORK/rootfs/etc/dconf/db/erodist.d"
+# Do not alter Mint's OS identity, packages, repositories, installer, users or boot files.
+test -d "$WORK/rootfs/usr/share/cinnamon"
+test -d "$WORK/rootfs/usr/share/themes/Mint-Y-Dark"
+python3 - "$WORK/rootfs" <<'PY'
+from pathlib import Path
+import sys
+root=Path(sys.argv[1])
+assert (root/'etc/linuxmint/info').is_file(), 'Not a Linux Mint filesystem'
+assert 'Cinnamon' in (root/'etc/linuxmint/info').read_text()
+assert not (root/'usr/local/bin/erodist-installer').exists()
+assert not (root/'usr/local/libexec/erodist-install').exists()
+PY
+# Zstd improves decompression relative to XZ; actual Hyper-V performance is untested.
+mksquashfs "$WORK/rootfs" "$WORK/changed/casper/filesystem.squashfs" -noappend -comp zstd -Xcompression-level 15 -b 1M
+size=$(du -sx --block-size=1 "$WORK/rootfs" | cut -f1)
+printf '%s\n' "$size" > "$WORK/changed/casper/filesystem.size"
+PYTHONPATH="$ROOT/scripts" python3 - "$WORK" <<'PY'
+from pathlib import Path
+import sys
+from mint_common import update_md5
+work=Path(sys.argv[1])
+changed={f'casper/{p.name}':p for p in (work/'changed/casper').iterdir()}
+(work/'changed/md5sum.txt').write_text(update_md5((work/'original-md5sum.txt').read_text(),changed))
+PY
+# Replay original hybrid BIOS/UEFI boot equipment, including appended EFI partitions.
+xorriso -indev "$ISO" -outdev "$ROOT/artifacts/$OUTPUT" \
+  -boot_image any replay \
+  -map "$WORK/changed/casper/filesystem.squashfs" /casper/filesystem.squashfs \
+  -map "$WORK/changed/casper/filesystem.size" /casper/filesystem.size \
+  -map "$WORK/changed/md5sum.txt" /md5sum.txt
+xorriso -indev "$ROOT/artifacts/$OUTPUT" -report_el_torito plain -report_system_area plain > "$ROOT/artifacts/BOOT-REPORT.txt" 2>&1
+python3 - "$WORK/upstream-boot.txt" "$ROOT/artifacts/BOOT-REPORT.txt" <<'PY'
+from pathlib import Path
+import sys
+old,new=map(lambda p:Path(p).read_text(),sys.argv[1:])
+for platform in ['BIOS','UEFI']:
+    assert platform in old and platform in new, f'Missing boot platform: {platform}'
+PY
+cp "$WORK/source/sha256sum.txt" "$ROOT/artifacts/UPSTREAM-SHA256SUMS.txt"
+python3 "$ROOT/scripts/package-release.py" "$ROOT/artifacts/$OUTPUT"
