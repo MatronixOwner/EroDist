@@ -1,9 +1,0 @@
-{
-  "edition": "cinnamon",
-  "mint_version": "22.3",
-  "filename": "linuxmint-22.3-cinnamon-64bit.iso",
-  "mirror": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3",
-  "signing_fingerprint": "27DEB15644C6B3CF3BD7D291300F846BA25BAE09",
-  "release": "0.8.0-mint1",
-  "output": "erodist-0.8.0-mint1-cinnamon-amd64.iso"
-}
