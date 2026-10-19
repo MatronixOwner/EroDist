@@ -1,5 +1,9 @@
 """Real GTK/Ubiquity page smoke test under Xvfb; no installer/disk operations."""
 import importlib.util
+import sys
+sys.path.insert(0, '/usr/lib/ubiquity')
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 from erodist import settings
 

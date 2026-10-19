@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SYSTEM = ROOT / 'packages/erodist-system'
@@ -88,3 +88,36 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(base['creator'], 'd50130483-ship-it')
         self.assertEqual(base['edition'], 'live')
         self.assertEqual(base['version'], '0.9.0-mint1')
+
+    def test_worker_status_tracks_success_and_failure(self):
+        entries = catalog(SYSTEM / 'usr/share/erodist/editions.json')
+        for edition, fail in [('home', False), ('program', False), ('pro', False), ('program', True)]:
+            with self.subTest(edition=edition, fail=fail), tempfile.TemporaryDirectory() as temp:
+                target = Path(temp)
+                base = target / 'usr/share/erodist/base.json'
+                base.parent.mkdir(parents=True)
+                base.write_text('{}')
+                selection = Mock()
+                selection.stat.return_value = Mock(st_uid=0, st_mode=0o100600)
+                selection.read_text.return_value = json.dumps({'edition': edition, 'steam_terms': edition == 'pro'})
+                def command(*args, **kwargs):
+                    if fail:
+                        raise worker.subprocess.CalledProcessError(100, 'apt-get')
+                with patch.object(worker, 'TARGET', target), patch.object(worker, 'SELECTION', selection), \
+                     patch.object(worker.os, 'geteuid', return_value=0), \
+                     patch.object(worker.os.path, 'ismount', return_value=True), \
+                     patch.object(Path, 'resolve', return_value=Path('/target')), \
+                     patch.object(worker, 'catalog', return_value=entries), \
+                     patch.object(worker.shutil, 'disk_usage', return_value=Mock(free=100 * 1024**3)), \
+                     patch.object(worker, 'run_in_target', side_effect=command) as run, \
+                     patch.object(worker.subprocess, 'run', return_value=Mock(stdout='installed')), \
+                     patch.object(sys, 'argv', ['provision-edition']):
+                    result = worker.main()
+                marker = json.loads((target / 'var/lib/erodist/installation.json').read_text())
+                self.assertEqual(result, 1 if fail else 0)
+                self.assertEqual(marker['status'], 'failed' if fail else 'complete')
+                self.assertEqual(marker['edition'], edition)
+                if edition == 'home':
+                    run.assert_not_called()
+                if edition == 'program' and not fail:
+                    self.assertTrue((target / 'etc/dconf/db/erodist.d/70-program-terminal').exists())
