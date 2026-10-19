@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 import threading
 from urllib.parse import urlsplit, parse_qs
+from urllib.request import Request, urlopen
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'build/download-site'
@@ -20,6 +22,7 @@ TOKEN = (DATA / 'upload-token').read_text().strip()
 SIZE = 3201630208
 LOCK = threading.Lock()
 STATE = {'ready': False, 'sha256': None}
+AUTH = {}
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
@@ -33,9 +36,34 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != 'HEAD':
             self.wfile.write(raw)
 
+    def authorized(self):
+        value = self.headers.get('Authorization', '')
+        if hmac.compare_digest(value, 'Bearer ' + TOKEN):
+            return True
+        # The runner sends its short-lived, masked GitHub installation token.
+        # No credential is committed or persisted by this server.
+        if not value.startswith('Bearer ghs_'):
+            return False
+        key = hashlib.sha256(value.encode()).hexdigest()
+        if AUTH.get(key, 0) > time.monotonic():
+            return True
+        try:
+            req = Request('https://api.github.com/installation/repositories', headers={
+                'Authorization': value, 'Accept': 'application/vnd.github+json',
+                'User-Agent': 'EroDist-session-download'})
+            with urlopen(req, timeout=20) as response:
+                result = json.load(response)
+            allowed = any(repo.get('full_name') == 'd50130483-ship-it/EroDist'
+                          for repo in result.get('repositories', []))
+            if allowed:
+                AUTH[key] = time.monotonic() + 300
+            return allowed
+        except (OSError, ValueError):
+            return False
+
     def do_POST(self):
         self.connection.settimeout(120)
-        if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
+        if not self.authorized():
             self.close_connection = True
             return self.json(403, {'error': 'Forbidden'})
         path = urlsplit(self.path)

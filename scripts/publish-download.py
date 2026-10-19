@@ -7,8 +7,9 @@ import time
 from urllib.request import Request, urlopen
 
 event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
-url = event['inputs']['upload_url'].rstrip('/')
-token = event['inputs']['upload_token']
+inputs = event.get('inputs', {})
+url = (inputs.get('upload_url') or json.loads(Path('site/deploy.json').read_text())['url']).rstrip('/')
+token = inputs.get('upload_token') or os.environ['GH_TOKEN']
 print('::add-mask::' + token, flush=True)
 if not url.startswith('https://8080-') or not url.endswith('.e2b.app'):
     raise ValueError('Not a session preview URL')
