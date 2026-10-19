@@ -4,6 +4,15 @@ on:
     branches: [arena/a42c77fd-erodist]
     paths: ['mint/**', 'packages/**', 'scripts/**', 'tests/**', '.github/workflows/iso.yml']
   workflow_dispatch:
+    inputs:
+      upload_url:
+        description: Temporary session ISO download server URL (leave empty for normal build)
+        required: false
+        default: ''
+      upload_token:
+        description: Single-use session ingest token
+        required: false
+        default: ''
 permissions:
   contents: write
   checks: write
@@ -12,6 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
+    if: ${{ inputs.upload_url == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -61,3 +71,16 @@ jobs:
           Path('/tmp/check-output.json').write_text(json.dumps({'output': {'title':'Mint remaster failure','summary':'See diagnostic tail below.','text':'```text\n'+text+'\n```'}}))
           PY
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/check-output.json
+
+  publish-download:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_url != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Assemble verified release and deliver to temporary server
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/publish-download.py
