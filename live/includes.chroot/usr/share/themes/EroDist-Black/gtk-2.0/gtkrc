@@ -1,0 +1,2 @@
+include "../../Arc-Dark/gtk-2.0/gtkrc"
+gtk-color-scheme = "bg_color:#171717\nfg_color:#ededed\nbase_color:#101010\ntext_color:#ededed\nselected_bg_color:#505050\nselected_fg_color:#ffffff\ntooltip_bg_color:#292929\ntooltip_fg_color:#ededed"

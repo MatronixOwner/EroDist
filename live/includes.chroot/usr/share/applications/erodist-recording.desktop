@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Запись экрана — OBS Studio
+Exec=erodist-play --tab recording
+Icon=video-display
+Categories=AudioVideo;Recorder;
+Terminal=false

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="theme" type="string" value="EroDist-Black"/><property name="use_compositing" type="bool" value="true"/><property name="show_frame_shadow" type="bool" value="false"/><property name="show_popup_shadow" type="bool" value="false"/><property name="show_dock_shadow" type="bool" value="false"/><property name="unredirect_overlays" type="bool" value="true"/></property></channel>

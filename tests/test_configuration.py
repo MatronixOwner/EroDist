@@ -35,7 +35,7 @@ class ConfigurationTests(unittest.TestCase):
 
     def test_versions(self):
         for name in ['scripts/build.sh', '.github/workflows/iso.yml', 'live/includes.chroot/usr/local/bin/erodist-report']:
-            self.assertIn('0.5.0', (ROOT / name).read_text())
+            self.assertIn('0.6.0', (ROOT / name).read_text())
             self.assertNotIn('0.1.0', (ROOT / name).read_text())
 
     def test_report_private_and_local(self):

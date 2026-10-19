@@ -1,4 +1,4 @@
-EroDist 0.5.0 — Debian 12 / XFCE
+EroDist 0.6.0 — Debian 12 / XFCE
 Откройте «Добро пожаловать в EroDist» в меню приложений.
 Инструкция: /usr/share/erodist/guide.html
 RU/EN: Alt + Shift. Live: tester / live.

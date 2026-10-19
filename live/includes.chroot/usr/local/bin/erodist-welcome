@@ -23,11 +23,12 @@ class Welcome(Gtk.Window):
         scroll.add(box)
         self.add(scroll)
         title = Gtk.Label()
-        title.set_markup('<span size="26000" weight="bold">EroDist 0.5</span>')
+        title.set_markup('<span size="26000" weight="bold">EroDist 0.6</span>')
         box.pack_start(title, False, False, 8)
         subtitle = Gtk.Label(label='Твоя система. Твоё пространство.\nDebian 12 · XFCE · RU / EN: Alt + Shift')
         box.pack_start(subtitle, False, False, 4)
         for text, callback in [
+            ('Игры и запись экрана', lambda *_: self.launch(['erodist-play'])),
             ('О системе EroDist', lambda *_: self.launch(['erodist-about'])),
             ('Центр настроек EroDist', lambda *_: self.launch(['erodist-settings'])),
             ('Популярные программы и Python', lambda *_: self.launch(['erodist-apps'])),

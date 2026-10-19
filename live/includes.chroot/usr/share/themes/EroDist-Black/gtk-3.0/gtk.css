@@ -1,0 +1,25 @@
+/* Arc remains the installed base; these are EroDist's own overrides. */
+@import url("../../Arc-Dark/gtk-3.0/gtk.css");
+@define-color theme_bg_color #171717;
+@define-color theme_fg_color #ededed;
+@define-color theme_base_color #101010;
+@define-color theme_text_color #ededed;
+@define-color theme_selected_bg_color #505050;
+@define-color theme_selected_fg_color #ffffff;
+@define-color borders #3c3c3c;
+window, dialog, .background { background-color: #171717; color: #ededed; }
+headerbar, menubar, toolbar { background: #1d1d1d; color: #ededed; border-color: #363636; }
+menu, popover { background-color: #171717; color: #ededed; }
+menuitem:hover, row:selected, selection { background-color: #454545; color: #ffffff; }
+button { background-image: none; background-color: #292929; color: #ededed; border-color: #484848; }
+button:hover { background-color: #383838; }
+button:checked, button:active { background-color: #494949; }
+button:disabled { color: #777777; background-color: #202020; }
+entry, textview text, treeview.view { background-color: #101010; color: #ededed; }
+entry:focus { border-color: #b0b0b0; box-shadow: none; }
+check:checked, radio:checked, scale highlight, progressbar progress { background-color: #777777; border-color: #999999; }
+.xfce4-panel { background-color: rgba(10,10,10,0.90); color: #eeeeee; }
+.xfce4-panel button { background: transparent; border-color: transparent; box-shadow: none; }
+.xfce4-panel button:hover, .xfce4-panel button:checked { background: rgba(255,255,255,0.12); }
+#whiskermenu-window { background-color: #151515; color: #eeeeee; }
+#whiskermenu-window entry { border-radius: 6px; }

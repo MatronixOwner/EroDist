@@ -17,8 +17,10 @@ class Settings(Gtk.Window):
         scroll = Gtk.ScrolledWindow()
         scroll.add(box)
         self.add(scroll)
-        box.pack_start(Gtk.Label(label='EroDist 0.5 · Настройки и обслуживание'), False, False, 10)
+        box.pack_start(Gtk.Label(label='EroDist 0.6 · Настройки и обслуживание'), False, False, 10)
         actions = [
+            ('Игры — Steam, Proton и геймпад', ['erodist-play', '--tab', 'games']),
+            ('Запись экрана — OBS Studio', ['erodist-play', '--tab', 'recording']),
             ('О системе EroDist', ['erodist-about']),
             ('Windows-программы (Wine)', ['erodist-wine']),
             ('Оформление и значки', ['xfce4-appearance-settings']),

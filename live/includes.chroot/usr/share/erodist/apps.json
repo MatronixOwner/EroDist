@@ -47,5 +47,31 @@
       "wine32:i386",
       "fonts-wine"
     ]
+  },
+  "steam": {
+    "name": "Steam + Mesa/Vulkan (32/64 бит)",
+    "description": "Steam из Debian contrib. Требуется принятие условий Valve, интернет и аккаунт. Proton и игры загружаются отдельно в Steam. Mesa не заменяет проприетарные библиотеки NVIDIA.",
+    "packages": [
+      "steam-installer",
+      "steam-devices",
+      "mesa-vulkan-drivers",
+      "mesa-vulkan-drivers:i386",
+      "libgl1-mesa-dri:i386"
+    ]
+  },
+  "gamepad": {
+    "name": "Геймпад — проверка и правила устройств",
+    "description": "jstest-gtk для проверки кнопок и осей, steam-devices для поддерживаемых контроллеров. Настройки игры выполняются в Steam Input. Не все устройства поддерживаются.",
+    "packages": [
+      "jstest-gtk",
+      "steam-devices"
+    ]
+  },
+  "obs": {
+    "name": "OBS Studio — запись экрана и звука",
+    "description": "Установка из Debian. После запуска добавьте захват экрана/окна и источники звука. Запись и трансляция не начинаются автоматически.",
+    "packages": [
+      "obs-studio"
+    ]
   }
 }

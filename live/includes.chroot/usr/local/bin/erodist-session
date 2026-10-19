@@ -3,7 +3,7 @@
 set -eu
 marker="$HOME/.config/erodist/desktop-black-v1"
 [ ! -f "$marker" ] || exit 0
-xfconf-query -c xfwm4 -p /general/theme -s Arc-Dark || true
+xfconf-query -c xfwm4 -p /general/theme -s EroDist-Black || true
 # XFCE creates properties asynchronously; bounded retry, not a permanent daemon.
 for attempt in 1 2 3 4 5; do
     properties=$(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/last-image$' || true)
