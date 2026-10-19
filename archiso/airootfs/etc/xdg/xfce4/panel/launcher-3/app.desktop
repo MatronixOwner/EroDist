@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Браузер
+Exec=firefox
+Icon=web-browser
+Terminal=false

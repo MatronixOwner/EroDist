@@ -6,7 +6,7 @@ from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-LIVE = ROOT / 'live/includes.chroot'
+LIVE = ROOT / 'archiso/airootfs'
 
 
 class PlayTests(unittest.TestCase):
@@ -16,7 +16,7 @@ class PlayTests(unittest.TestCase):
     def test_installed_tools(self):
         with patch('shutil.which', side_effect=lambda name: '/usr/bin/' + name):
             self.assertEqual(self.module['tool_command']('obs'), ['/usr/bin/obs'])
-            self.assertEqual(self.module['tool_command']('gamepad'), ['/usr/bin/jstest-gtk'])
+            self.assertEqual(self.module['tool_command']('gamepad'), ['/usr/bin/evtest'])
 
     def test_steam_games_path(self):
         with patch('shutil.which', return_value=None), patch('os.access', return_value=True):
@@ -35,11 +35,11 @@ class PlayTests(unittest.TestCase):
 
     def test_catalog_bundles(self):
         catalog = json.loads((LIVE / 'usr/share/erodist/apps.json').read_text())
-        self.assertIn('steam-installer', catalog['steam']['packages'])
-        self.assertIn('mesa-vulkan-drivers:i386', catalog['steam']['packages'])
-        self.assertIn('steam-devices', catalog['gamepad']['packages'])
+        self.assertIn('steam', catalog['steam']['packages'])
+        self.assertIn('lib32-vulkan-radeon', catalog['steam']['packages'])
+        self.assertIn('evtest', catalog['gamepad']['packages'])
         self.assertEqual(catalog['obs']['packages'], ['obs-studio'])
-        image_packages = (ROOT / 'live/package-lists/desktop.list.chroot').read_text().splitlines()
+        image_packages = (ROOT / 'archiso/packages.x86_64').read_text().splitlines()
         for name in ['steam-installer', 'obs-studio', 'jstest-gtk', 'kdeconnect', 'albert', 'ulauncher']:
             self.assertNotIn(name, image_packages)
 

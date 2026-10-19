@@ -1,0 +1,73 @@
+{
+  "python": {
+    "name": "Python 3 + pip + venv + IDLE",
+    "description": "Разработка на Python. Для библиотек создавайте виртуальное окружение; не используйте sudo pip.",
+    "packages": [
+      "python",
+      "python-pip",
+      "tk"
+    ]
+  },
+  "vlc": {
+    "name": "VLC",
+    "description": "Видео и музыка",
+    "packages": [
+      "vlc"
+    ]
+  },
+  "telegram": {
+    "name": "Telegram Desktop",
+    "description": "Мессенджер из репозитория Arch Linux",
+    "packages": [
+      "telegram-desktop"
+    ]
+  },
+  "gimp": {
+    "name": "GIMP",
+    "description": "Редактор изображений",
+    "packages": [
+      "gimp"
+    ]
+  },
+  "office": {
+    "name": "LibreOffice",
+    "description": "Документы и таблицы, русский интерфейс",
+    "packages": [
+      "libreoffice-fresh",
+      "libreoffice-fresh-ru"
+    ]
+  },
+  "wine": {
+    "name": "Wine — Windows EXE (32/64 бит)",
+    "description": "Wine из Arch extra с WoW64 для x86/x86-64. Не песочница; совместимость зависит от программы. Установка включает полное обновление системы.",
+    "packages": [
+      "wine"
+    ]
+  },
+  "steam": {
+    "name": "Steam + Mesa/Vulkan (32/64 бит)",
+    "description": "Steam из Arch multilib. Требуется принятие условий Valve, интернет и аккаунт. Proton и игры загружаются отдельно в Steam. Mesa не заменяет проприетарные библиотеки NVIDIA.",
+    "packages": [
+      "steam",
+      "vulkan-radeon",
+      "vulkan-intel",
+      "lib32-vulkan-radeon",
+      "lib32-vulkan-intel",
+      "lib32-mesa"
+    ]
+  },
+  "gamepad": {
+    "name": "Геймпад — проверка и правила устройств",
+    "description": "Проверка событий геймпада в терминале evtest; может запросить sudo. Выбирайте только устройство геймпада, не клавиатуру. Steam Input настраивается отдельно.",
+    "packages": [
+      "evtest"
+    ]
+  },
+  "obs": {
+    "name": "OBS Studio — запись экрана и звука",
+    "description": "Установка из Arch Linux. После запуска добавьте захват экрана/окна и источники звука. Запись и трансляция не начинаются автоматически.",
+    "packages": [
+      "obs-studio"
+    ]
+  }
+}

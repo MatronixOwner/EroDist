@@ -1,0 +1,9 @@
+{
+  "hostname": "erodist",
+  "kernels": ["linux"],
+  "ntp": true,
+  "locale_config": {"kb_layout": "us", "sys_enc": "UTF-8", "sys_lang": "ru_RU"},
+  "profile_config": {
+    "profile": {"main": "EroDist XFCE", "path": "/usr/share/erodist/archinstall-profile.py"}
+  }
+}

@@ -1,0 +1,9 @@
+#!/bin/bash
+# Storage and account management remain in Arch's maintained interactive installer.
+set -euo pipefail
+[[ $# -eq 0 && $EUID -eq 0 ]] || exit 1
+grep -qE '(^| )archisobasedir=' /proc/cmdline || { echo 'Live ISO only'; exit 1; }
+exec 9>/run/lock/erodist-installer.lock
+flock -n 9 || { echo 'Installer already running'; exit 1; }
+printf '\nEroDist Arch — TEST INSTALLER\nChoose EroDist XFCE profile, review target disk and create your own admin user.\nRequires internet. Installation can erase all data. No automatic partition choice.\n\n'
+exec /usr/bin/archinstall --config /etc/erodist/archinstall.json

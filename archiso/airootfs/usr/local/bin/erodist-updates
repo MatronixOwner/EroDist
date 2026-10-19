@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+import subprocess
+
+if __name__ == '__main__':
+    # Interactive confirmation, no partial upgrades or unattended changes.
+    subprocess.Popen(['xfce4-terminal', '--disable-server', '--hold', '--execute', 'sudo', '/usr/bin/pacman', '-Syu'])

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Use the localized XDG desktop directory; never offer reinstallation on the target.
+set -eu
+case " $(cat /proc/cmdline) " in *" archisobasedir=erodist "*) ;; *) exit 0 ;; esac
+desktop=$(xdg-user-dir DESKTOP)
+[ -n "$desktop" ] && [ "$desktop" != "$HOME" ] || exit 0
+mkdir -p "$desktop"
+icon="$desktop/erodist-installer.desktop"
+cp /usr/share/applications/erodist-installer.desktop "$icon"
+chmod u+x "$icon"
+gio set --type=string "$icon" metadata::trusted true 2>/dev/null || true
+gio set --type=string "$icon" metadata::xfce-exe-checksum "$(sha256sum "$icon" | cut -d' ' -f1)" 2>/dev/null || true

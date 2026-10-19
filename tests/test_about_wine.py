@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-BIN = Path(__file__).resolve().parents[1] / 'live/includes.chroot/usr/local/bin'
+BIN = Path(__file__).resolve().parents[1] / 'archiso/airootfs/usr/local/bin'
 
 
 class AboutTests(unittest.TestCase):
@@ -84,8 +84,7 @@ class WineTests(unittest.TestCase):
         import json
         root = BIN.parents[2]
         catalog = json.loads((root / 'usr/share/erodist/apps.json').read_text())
-        self.assertIn('wine32:i386', catalog['wine']['packages'])
-        self.assertIn('wine64', catalog['wine']['packages'])
+        self.assertEqual(['wine'], catalog['wine']['packages'])
 
     def test_no_privilege_escalation(self):
         source = (BIN / 'erodist-wine').read_text()

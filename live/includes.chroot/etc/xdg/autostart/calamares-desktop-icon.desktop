@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Debian Installer Icon (replaced by EroDist)
-Exec=erodist-installer-icon
-Hidden=true
