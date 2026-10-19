@@ -126,7 +126,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlsplit(self.path).path
         if path == '/api/status':
-            return self.json(200, {**STATE, 'bytes': SIZE if STATE['ready'] else PART.stat().st_size if PART.exists() else 0})
+            return self.json(200, {**STATE, 'blocked': (DATA / 'blocked.json').exists() and not STATE['ready'], 'bytes': SIZE if STATE['ready'] else PART.stat().st_size if PART.exists() else 0})
         if path == '/':
             data = (ROOT / 'site/index.html').read_bytes()
             self.send_response(200)
