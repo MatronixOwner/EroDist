@@ -13,13 +13,23 @@ def identity():
     if status_path.exists():
         try:
             state = json.loads(status_path.read_text())
+            if not isinstance(state, dict):
+                raise ValueError('Invalid installation status')
             base['edition'] = state.get('edition', 'unknown')
             base['status'] = state.get('status', 'unknown')
         except (ValueError, OSError):
             base.update(edition='unknown', status='unreadable')
     else:
         base['status'] = 'live' if 'boot=casper' in Path('/proc/cmdline').read_text().split() else 'unconfigured'
+        if base['status'] != 'live':
+            base['edition'] = 'unknown'
     return base
+
+
+def virtualization():
+    if Path('/sys/bus/vmbus').exists():
+        return 'Hyper-V / Microsoft Hypervisor (обнаружена шина VMBus)'
+    return 'Не определена; это не проверка наличия аппаратного ускорения'
 
 
 def collect():
@@ -41,5 +51,6 @@ def collect():
         'Загрузка: ' + ('UEFI' if Path('/sys/firmware/efi').exists() else 'BIOS'),
         f"Процессор: {cpu.group(1) if cpu else platform.machine()} · потоков: {os.cpu_count()}",
         f"RAM: {int(mem.group(1))/1048576:.1f} ГиБ" if mem else 'RAM: не определено',
+        'Среда: ' + virtualization(),
         'Графика:\n' + gpu,
     ])

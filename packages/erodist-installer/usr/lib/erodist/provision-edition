@@ -89,6 +89,16 @@ font='DejaVu Sans Mono 11'
 audible-bell=false
 scrollback-lines=10000
 """)
+                bashrc = TARGET / 'etc/skel/.bashrc'
+                bashrc.parent.mkdir(parents=True, exist_ok=True)
+                current = bashrc.read_text() if bashrc.exists() else ''
+                if '# EroDist Program prompt' not in current:
+                    bashrc.write_text(current + r"""
+# EroDist Program prompt: interactive Bash only; no background commands.
+if [[ $- == *i* && ${TERM:-dumb} != dumb ]]; then
+    PS1='\[\e[38;5;250m\]\u@\h \[\e[38;5;110m\]\w\[\e[0m\]\n\$ '
+fi
+""")
                 run_in_target(['dconf', 'update'], log)
             state['status'] = 'complete'
             state['updated_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()

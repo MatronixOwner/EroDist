@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import threading
 from ubiquity import plugin, misc, install_misc
 from erodist.editions import catalog, validate_selection
+from erodist.preflight import network_check
 
 NAME = 'erodist'
 AFTER = 'prepare'
@@ -22,6 +24,9 @@ class PageGtk(plugin.PluginUI):
         super().__init__()
         from gi.repository import Gtk, Gdk
         self.controller = controller
+        self.network_state = None
+        self.network_pending = False
+        self.check_generation = 0
         self.selected = None
         self.buttons = {}
         self.page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -60,6 +65,14 @@ class PageGtk(plugin.PluginUI):
         self.notice = Gtk.Label(label='Выберите редакцию. Pro и Program требуют интернет и дополнительное место. Ошибка загрузки остановит установку редакции.', xalign=0)
         self.notice.set_line_wrap(True)
         self.page.pack_start(self.notice, False, False, 0)
+        network_row = Gtk.Box(spacing=10)
+        self.network_label = Gtk.Label(label='Home не требует дополнительных загрузок редакции.', xalign=0)
+        self.network_label.set_line_wrap(True)
+        network_row.pack_start(self.network_label, True, True, 0)
+        self.retry = Gtk.Button(label='Проверить ещё раз')
+        self.retry.connect('clicked', lambda *_: self.start_check())
+        network_row.pack_end(self.retry, False, False, 0)
+        self.page.pack_start(network_row, False, False, 0)
         self.plugin_widgets = self.page
         self.page.connect('map', lambda *_: self.sync_navigation())
         provider = Gtk.CssProvider()
@@ -70,10 +83,45 @@ class PageGtk(plugin.PluginUI):
     def choose(self, button, key):
         if button.get_active():
             self.selected = key
-            self.sync_navigation()
+            self.check_generation += 1
+            self.network_state = None
+            self.network_pending = False
+            if catalog()[key]['requires_network']:
+                self.start_check()
+            else:
+                self.network_label.set_text('Home не требует дополнительных загрузок редакции. Дополнительные опции самого Mint могут потребовать интернет.')
+                self.sync_navigation()
+
+    def start_check(self):
+        if self.selected is None or not catalog()[self.selected]['requires_network']:
+            return
+        from gi.repository import GLib
+        self.check_generation += 1
+        generation = self.check_generation
+        self.network_pending = True
+        self.network_state = None
+        self.network_label.set_text('Проверяем доступ к архиву Ubuntu… Диск пока не изменяется.')
+        self.sync_navigation()
+        def ready(ok, message):
+            if generation == self.check_generation:
+                self.network_pending = False
+                self.network_state = ok
+                self.network_label.set_text(message)
+                self.sync_navigation()
+            return False
+        def work():
+            ok, message = network_check()
+            GLib.idle_add(ready, ok, message)
+        threading.Thread(target=work, daemon=True).start()
+
+    def can_continue(self):
+        return (self.selected is not None
+                and (self.selected != 'pro' or self.terms.get_active())
+                and (not catalog()[self.selected]['requires_network'] or self.network_state is True))
 
     def sync_navigation(self):
-        valid = self.selected is not None and (self.selected != 'pro' or self.terms.get_active())
+        valid = self.can_continue()
+        self.retry.set_sensitive(self.selected in ('pro', 'program') and not self.network_pending)
         self.terms.set_sensitive(self.selected == 'pro')
         self.controller.allow_go_forward(valid)
         if self.selected:
@@ -89,11 +137,15 @@ class PageGtk(plugin.PluginUI):
 
 class Page(plugin.Plugin):
     def prepare(self):
+        self.ui.start_check()
         self.ui.sync_navigation()
         return None
 
     def ok_handler(self):
         selection = self.ui.selection()
+        if not self.ui.can_continue():
+            self.ui.sync_navigation()
+            return
         try:
             validate_selection(selection)
         except ValueError:
@@ -119,7 +171,8 @@ class Install(plugin.InstallPlugin):
             return 1
         prepared = False
         try:
-            validate_selection(json.loads(STATE.read_text()))
+            key = validate_selection(json.loads(STATE.read_text()))
+            progress.info('erodist/install/' + key)
             install_misc.chroot_setup(target)
             prepared = True
             return subprocess.call(['/usr/lib/erodist/provision-edition'])

@@ -1,1 +1,2 @@
 /etc/dconf/db/erodist.d/50-erodist
+/etc/xdg/autostart/erodist-welcome.desktop

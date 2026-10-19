@@ -59,6 +59,17 @@ def main():
     page('personal', 'Оформление', [('Темы и значки', ['cinnamon-settings', 'themes']), ('Обои', ['cinnamon-settings', 'backgrounds']), ('Панель', ['cinnamon-settings', 'panel']), ('Шрифты', ['cinnamon-settings', 'fonts'])])
     page('devices', 'Устройства', [('Дисплеи', ['cinnamon-settings', 'display']), ('Звук', ['cinnamon-settings', 'sound']), ('Клавиатура', ['cinnamon-settings', 'keyboard']), ('Мышь и тачпад', ['cinnamon-settings', 'mouse']), ('Питание', ['cinnamon-settings', 'power'])])
     page('network', 'Сеть и доступ', [('Сеть', ['cinnamon-settings', 'network']), ('Bluetooth', ['blueman-manager']), ('Пользователи', ['cinnamon-settings-users']), ('Конфиденциальность', ['cinnamon-settings', 'privacy'])])
+    box = page('diagnostics', 'Диагностика', [('Экран первого запуска', ['erodist-welcome']), ('Снимки восстановления', ['timeshift-launcher'])])
+    explain = Gtk.Label(label='Отчёт можно сначала просмотреть, затем сохранить. Личные файлы и журналы не собираются; автоматической отправки нет.', xalign=0)
+    explain.set_line_wrap(True)
+    box.pack_start(explain, False, False, 8)
+    report = Gtk.Button(label='Просмотреть диагностический отчёт…')
+    def open_report(_):
+        from .diagnostics import create_window
+        dialog = create_window(window)
+        dialog.show_all()
+    report.connect('clicked', open_report)
+    box.pack_start(report, False, False, 0)
     box = page('about', 'О системе', [])
     view = Gtk.TextView(editable=False, cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD_CHAR)
     view.set_top_margin(12)

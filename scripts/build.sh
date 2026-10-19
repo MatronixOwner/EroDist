@@ -87,6 +87,9 @@ for platform in ['BIOS','UEFI']:
     assert platform in old and platform in new, f'Missing boot platform: {platform}'
 PY
 cp "$WORK/source/sha256sum.txt" "$ROOT/artifacts/UPSTREAM-SHA256SUMS.txt"
+# Keep the same verified ISO inode for a one-file Actions ZIP; Releases keep the split fallback.
+mkdir -p "$ROOT/archive"
+ln "$ROOT/artifacts/$OUTPUT" "$ROOT/archive/$OUTPUT"
 python3 "$ROOT/scripts/package-release.py" "$ROOT/artifacts/$OUTPUT"
 
 (cd "$ROOT/artifacts" && sha256sum ./*.deb >> SHA256SUMS)

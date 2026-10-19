@@ -1,5 +1,5 @@
 Package: erodist-system
-Version: 0.9.0-mint1
+Version: 1.0.0~rc1-mint1
 Architecture: all
 Maintainer: EroDist <erodist@localhost>
 Depends: python3, python3-gi, gir1.2-gtk-3.0, dconf-gsettings-backend, dconf-cli

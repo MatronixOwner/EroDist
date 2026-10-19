@@ -2,3 +2,15 @@ Template: ubiquity/text/erodist
 Type: text
 Default: Редакция EroDist
 Description: Редакция EroDist
+
+Template: erodist/install/home
+Type: text
+Description: Настройка EroDist Home. Дополнительные пакеты редакции не загружаются.
+
+Template: erodist/install/pro
+Type: text
+Description: Установка EroDist Pro: загрузка Steam и игровых библиотек. Не выключайте компьютер.
+
+Template: erodist/install/program
+Type: text
+Description: Установка EroDist Program: загрузка инструментов разработки, Godot и Blender. Не выключайте компьютер.

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=EroDist First Run
+Name[ru]=Первый запуск EroDist
+Exec=erodist-welcome --autostart
+Icon=preferences-system
+OnlyShowIn=X-Cinnamon;
+X-GNOME-Autostart-Delay=8
+Terminal=false
