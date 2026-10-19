@@ -59,6 +59,10 @@ ln -sf /usr/lib/systemd/system/graphical.target "$SYSTEM/default.target"
 ln -sf ../erodist-live-setup.service "$SYSTEM/graphical.target.wants/erodist-live-setup.service"
 ln -sf /run/NetworkManager/resolv.conf "$PROFILE/airootfs/etc/resolv.conf"
 printf 'erodist\n' > "$PROFILE/airootfs/etc/hostname"
+# Package-owned XFCE defaults must not exist during pacstrap's conflict check.
+# Apply our overrides via the image-only post-transaction hook after packages install.
+mkdir -p "$PROFILE/airootfs/usr/share/erodist/package-overrides/etc"
+mv "$PROFILE/airootfs/etc/xdg" "$PROFILE/airootfs/usr/share/erodist/package-overrides/etc/xdg"
 # Executable overlay permissions must survive mkarchiso's ownership handling.
 while IFS= read -r executable; do
   relative="${executable#"$PROFILE/airootfs"}"

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 locale-gen
+cp -a /usr/share/erodist/package-overrides/etc/. /etc/
 if [[ ! -d /usr/share/themes/EroDist-Black/xfwm4 ]]; then
   cp -aL /usr/share/themes/Default/xfwm4 /usr/share/themes/EroDist-Black/
 fi
