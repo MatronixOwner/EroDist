@@ -4,3 +4,5 @@
 *.iso.sha256
 
 __pycache__/
+
+/published-iso/

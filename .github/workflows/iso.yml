@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
-    if: ${{ inputs.upload_url == '' && !contains(github.event.head_commit.message, '[publish-download]') }}
+    if: ${{ inputs.upload_url == '' && !contains(github.event.head_commit.message, '[publish-download]') && !contains(github.event.head_commit.message, '[iso-zip]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -102,3 +102,49 @@ jobs:
           Path('/tmp/transfer-output.json').write_text(json.dumps({'output': {'title':'ISO transfer failure','summary':'Diagnostic tail','text':'```text\n'+text+'\n```'}}))
           PYDIAG
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/transfer-output.json
+
+  iso-zip:
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[iso-zip]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download and verify already published ISO
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          bash scripts/prepare-iso-zip.sh 2>&1 | tee /tmp/iso-zip.log
+      - name: Publish one ZIP containing one complete ISO
+        id: archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: EroDist-0.9-Cinnamon-ISO
+          path: published-iso/erodist-0.9.0-mint1-cinnamon-amd64.iso
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Record download link
+        env:
+          ARTIFACT_URL: ${{ steps.archive.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.archive.outputs.artifact-digest }}
+        run: |
+          printf '## Single ZIP with complete ISO\n\n[Download ZIP](%s)\n\nContains one complete ISO, not split parts. GitHub sign-in required. Retention: 7 days.\n\nArchive SHA256: `%s`\n' "$ARTIFACT_URL" "$ARTIFACT_DIGEST" >> "$GITHUB_STEP_SUMMARY"
+      - name: Attach archive failure diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "iso-zip") | .id' | head -1)
+          python3 - <<'PYDIAG'
+          import json, os
+          from pathlib import Path
+          p=Path('/tmp/iso-zip.log')
+          text=p.read_text(errors='replace')[-25000:] if p.exists() else 'Failed before assembly.'
+          text=text.replace(os.environ['GH_TOKEN'], '[REDACTED]')
+          Path('/tmp/zip-output.json').write_text(json.dumps({'output': {'title':'ISO ZIP failure','summary':'See assembly diagnostics; upload errors are in Actions logs.','text':'```text\n'+text+'\n```'}}))
+          PYDIAG
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/zip-output.json
