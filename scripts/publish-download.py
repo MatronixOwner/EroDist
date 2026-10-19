@@ -43,3 +43,12 @@ with file.open('rb') as stream:
         if offset % (8 * 1024**2 * 20) == 0:
             print('Uploaded', offset, 'bytes', flush=True)
 print(post('/api/finalize', b''), flush=True)
+
+# Confirm that the public proxy preserves large-file metadata and Range delivery.
+with urlopen(Request(url + '/download/' + file.name, method='HEAD'), timeout=30) as response:
+    assert int(response.headers['Content-Length']) == file.stat().st_size
+with urlopen(Request(url + '/download/' + file.name, headers={'Range': 'bytes=0-4095'}), timeout=30) as response:
+    assert response.status == 206
+    with file.open('rb') as source:
+        assert response.read() == source.read(4096)
+print('Public HTTPS download and resume check passed.', flush=True)

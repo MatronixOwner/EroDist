@@ -78,9 +78,27 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v5
       - name: Assemble verified release and deliver to temporary server
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/publish-download.py
+        run: |
+          set -o pipefail
+          python3 scripts/publish-download.py 2>&1 | tee /tmp/erodist-transfer.log
+      - name: Attach transfer failure diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "publish-download") | .id' | head -1)
+          python3 - <<'PYDIAG'
+          import json, os
+          from pathlib import Path
+          p=Path('/tmp/erodist-transfer.log')
+          text=p.read_text(errors='replace')[-30000:] if p.exists() else 'Failed before transfer.'
+          text=text.replace(os.environ['GH_TOKEN'], '[REDACTED]')
+          Path('/tmp/transfer-output.json').write_text(json.dumps({'output': {'title':'ISO transfer failure','summary':'Diagnostic tail','text':'```text\n'+text+'\n```'}}))
+          PYDIAG
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/transfer-output.json
