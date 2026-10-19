@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import time
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+import sys
 
 event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
 inputs = event.get('inputs', {})
@@ -13,6 +15,14 @@ token = inputs.get('upload_token') or os.environ['GH_TOKEN']
 print('::add-mask::' + token, flush=True)
 if not url.startswith('https://8080-') or not url.endswith('.e2b.app'):
     raise ValueError('Not a session preview URL')
+try:
+    with urlopen(Request(url + '/api/status', headers={'User-Agent': 'Mozilla/5.0 EroDist-Transfer'}), timeout=30) as response:
+        print('Public server status:', response.status, response.read(2000).decode(), flush=True)
+except HTTPError as exc:
+    print('Public endpoint:', exc.code, exc.headers.get('Server'), exc.read(3000).decode(errors='replace'), flush=True)
+    raise
+if '[probe-download]' in event.get('head_commit', {}).get('message', ''):
+    sys.exit(0)
 subprocess.run(['gh', 'release', 'download', 'test-0.9.0-mint1-22-1',
                 '--pattern', '*.iso.part*', '--pattern', 'ASSEMBLY.json', '--pattern', 'assemble.sh',
                 '--dir', 'published-iso'], check=True)
@@ -24,7 +34,7 @@ def post(route, data):
     for attempt in range(5):
         try:
             req = Request(url + route, data=data, headers={'Authorization': 'Bearer ' + token,
-                          'Content-Type': 'application/octet-stream'}, method='POST')
+                          'Content-Type': 'application/octet-stream', 'User-Agent': 'Mozilla/5.0 EroDist-Transfer'}, method='POST')
             with urlopen(req, timeout=180) as response:
                 return json.load(response)
         except OSError:
