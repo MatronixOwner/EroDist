@@ -47,8 +47,19 @@ def settle():
 
 def assert_bounds(child, parent):
     x, y = child.translate_coordinates(parent, 0, 0)
-    assert x >= 0 and y >= 0, (child, x, y)
+    assert x >= 0 and y >= 0, (child.get_text() if isinstance(child, Gtk.Label) else str(child), x, y, str(child.get_allocation()), str(parent.get_allocation()))
     assert x + child.get_allocated_width() <= parent.get_allocated_width() + 2, (child, x, child.get_allocated_width(), parent.get_allocated_width())
+
+
+def visible_label(label):
+    # GTK may keep a collapsed expander's child mapped with its unallocated
+    # 1x1 placeholder. It has no displayed geometry until expansion.
+    ancestor = label.get_parent()
+    while ancestor is not None:
+        if isinstance(ancestor, Gtk.Expander) and not ancestor.get_expanded():
+            return False
+        ancestor = ancestor.get_parent()
+    return label.get_mapped()
 
 
 def run_case(width, height, font_scale):
@@ -83,7 +94,7 @@ def run_case(width, height, font_scale):
     x, y = page.buttons['home'].translate_coordinates(page.page, 0, 0)
     assert 0 <= y < page.page.get_allocated_height(), ('Home hidden at startup', y)
     for label in page.description_labels:
-        if label.get_mapped():
+        if visible_label(label):
             assert_bounds(label, page.content)
     assert_bounds(controller.next, window)
     assert_bounds(back, window)
@@ -122,7 +133,7 @@ def run_case(width, height, font_scale):
     settle()
     assert window.get_allocated_width() <= width and window.get_allocated_height() <= height
     for label in page.description_labels:
-        if label.get_mapped():
+        if visible_label(label):
             assert_bounds(label, page.content)
     page.buttons['home'].set_active(True)
     assert not page.terms.get_visible() and not page.retry.get_visible()
