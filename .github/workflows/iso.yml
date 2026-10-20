@@ -20,7 +20,37 @@ concurrency:
   group: erodist-iso-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  installer-layout:
+    if: ${{ inputs.upload_url == '' && !contains(github.event.head_commit.message, '[publish-download]') && !contains(github.event.head_commit.message, '[iso-zip]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install GTK geometry test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends python3-gi gir1.2-gtk-3.0 xvfb xauth fonts-dejavu-core
+          sudo cp -a packages/erodist-system/usr/share/erodist /usr/share/
+      - name: Test small-screen layout without storage backend
+        run: |
+          set -o pipefail
+          xvfb-run -a -s '-screen 0 1280x800x24 -ac' /usr/bin/python3 scripts/installer-layout.py --stub-backend 2>&1 | tee /tmp/erodist-layout.log
+      - name: Attach layout failure diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "installer-layout") | .id' | head -1)
+          python3 - <<'PYDIAG'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/erodist-layout.log')
+          text=p.read_text(errors='replace')[-20000:] if p.exists() else 'Failed installing GTK dependencies.'
+          Path('/tmp/layout-output.json').write_text(json.dumps({'output': {'title':'Installer layout failure','summary':'Small-screen regression test','text':'```text\n'+text+'\n```'}}))
+          PYDIAG
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/layout-output.json
   build:
+    needs: installer-layout
     if: ${{ inputs.upload_url == '' && !contains(github.event.head_commit.message, '[publish-download]') && !contains(github.event.head_commit.message, '[iso-zip]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -52,7 +82,7 @@ jobs:
         id: iso_archive
         uses: actions/upload-artifact@v4
         with:
-          name: EroDist-1.0.0-RC2-Cinnamon-ISO
+          name: EroDist-1.0.0-RC3-Cinnamon-ISO
           path: archive/*.iso
           compression-level: 0
           retention-days: 7

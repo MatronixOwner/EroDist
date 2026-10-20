@@ -36,6 +36,10 @@ cp "$ROOT/scripts/check-branding.py" "$ROOTFS/tmp/check-branding.py"
 chroot "$ROOTFS" python3 /tmp/check-branding.py
 cp "$ROOT/scripts/check-editions.py" "$ROOTFS/tmp/check-editions.py"
 chroot "$ROOTFS" python3 /tmp/check-editions.py
+cp "$ROOT/scripts/installer-layout.py" "$ROOTFS/tmp/installer-layout.py"
+xvfb-run -a -s '-screen 0 1280x800x24 -ac' chroot "$ROOTFS" env XAUTHORITY=/dev/null python3 /tmp/installer-layout.py
+cp "$ROOTFS"/tmp/erodist-layout/*.png "$ROOT/artifacts/"
+rm -rf "$ROOTFS/tmp/erodist-layout"
 cp "$ROOT/scripts/gui-smoke.py" "$ROOTFS/tmp/gui-smoke.py"
 xvfb-run -a -s '-screen 0 1280x800x24 -ac' chroot "$ROOTFS" env XAUTHORITY=/dev/null python3 /tmp/gui-smoke.py
 # Build the live initramfs with the selected EroDist theme, using the exact upstream kernel.
@@ -50,4 +54,4 @@ rm "$ROOTFS/tmp/erodist-initrd"
 cp "$ROOTFS/var/lib/erodist/branding.json" "$ROOT/artifacts/BRANDING-REPORT.json"
 chroot "$ROOTFS" dpkg --remove-architecture i386
 find "$ROOTFS/var/lib/apt/lists" -type f -name '*binary-i386*' -delete
-rm -f "$ROOTFS/tmp/erodist-system.deb" "$ROOTFS/tmp/erodist-installer.deb" "$ROOTFS/tmp/check-editions.py" "$ROOTFS/tmp/gui-smoke.py" "$ROOTFS/tmp/check-branding.py"
+rm -f "$ROOTFS/tmp/erodist-system.deb" "$ROOTFS/tmp/erodist-installer.deb" "$ROOTFS/tmp/check-editions.py" "$ROOTFS/tmp/gui-smoke.py" "$ROOTFS/tmp/check-branding.py" "$ROOTFS/tmp/installer-layout.py"

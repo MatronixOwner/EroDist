@@ -1,5 +1,5 @@
 Package: erodist-installer
-Version: 1.0.0~rc2-mint1
+Version: 1.0.0~rc3-mint1
 Architecture: all
 Maintainer: EroDist <erodist@localhost>
 Depends: erodist-system, ubiquity, ubiquity-frontend-gtk

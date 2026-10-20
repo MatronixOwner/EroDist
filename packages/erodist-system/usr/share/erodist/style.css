@@ -8,10 +8,12 @@
 .erodist-window .title { font-size: 24px; font-weight: bold; }
 .erodist-window .muted { color: #b8bac4; }
 /* Scoped Ubiquity page: retains stock partition widgets and confirmation logic. */
-.erodist-editions { background: #15161a; color: #eeeeef; padding: 18px; border-radius: 14px; }
-.erodist-editions .card { background: #23252b; border: 1px solid #4a4c57; border-radius: 12px; padding: 12px; }
-.erodist-editions .title { font-size: 24px; font-weight: bold; }
+.erodist-editions { background: #15161a; color: #eeeeef; border-radius: 12px; }
+.erodist-editions .card { background: #23252b; border: 1px solid #4a4c57; border-radius: 10px; padding: 8px; }
+.erodist-editions .title { font-size: 22px; font-weight: bold; }
 
 .erodist-installer { background: #15161a; color: #eeeeef; }
 .erodist-installer button { border-radius: 9px; padding: 8px 12px; }
 .erodist-installer entry { border-radius: 8px; }
+
+.erodist-editions viewport { background: #15161a; }
