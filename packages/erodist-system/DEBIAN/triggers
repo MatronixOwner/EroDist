@@ -2,3 +2,5 @@ interest-noawait /usr/share/icons
 interest-noawait /usr/share/pixmaps
 interest-noawait /usr/share/linuxmint
 interest-noawait /usr/share/ubiquity-slideshow
+interest-noawait /usr/share/plymouth/themes
+interest-noawait /usr/share/cinnamon

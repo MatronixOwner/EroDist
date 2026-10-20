@@ -2,7 +2,7 @@ Package: erodist-system
 Version: 1.0.0~rc2-mint1
 Architecture: all
 Maintainer: EroDist <erodist@localhost>
-Depends: python3, python3-gi, gir1.2-gtk-3.0, dconf-gsettings-backend, dconf-cli, python3-pil, plymouth, plymouth-theme-script
+Depends: python3, python3-gi, gir1.2-gtk-3.0, dconf-gsettings-backend, dconf-cli, python3-pil, plymouth, plymouth-themes, plymouth-label
 Description: EroDist system centre and edition identity for Linux Mint Cinnamon
  Provides the settings hub, local system information and EroDist desktop defaults.
  Does not replace Mint package management or storage configuration backends.

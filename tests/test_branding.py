@@ -59,3 +59,26 @@ class BrandingTests(unittest.TestCase):
         self.assertIn('mkinitramfs -o /tmp/erodist-initrd "$KERNEL"', script)
         self.assertIn("grep -q 'scripts/casper'", script)
         self.assertIn('BRANDING-REPORT.json', script)
+
+    def test_rendered_icons_decode_without_vendor_art(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest('Pillow is installed by the image build dependency step')
+        from unittest.mock import patch
+        from erodist import branding
+        with tempfile.TemporaryDirectory() as temp:
+            for extension in ('.png', '.jpg', '.gif', '.xpm', '.svg'):
+                path = Path(temp) / ('mint-logo' + extension)
+                if extension != '.svg':
+                    Image.new('RGB', (64,64), 'green').save(path, format='PNG')
+                with patch.object(branding, 'ASSETS', ROOT/'packages/erodist-system/usr/share/erodist/branding'):
+                    branding.render(path)
+                if extension == '.svg':
+                    self.assertIn(b'#eeeeef', path.read_bytes())
+                else:
+                    with Image.open(path) as image:
+                        self.assertEqual(image.size, (64,64))
+                        red, green, blue = image.convert('RGB').getpixel((32,16))
+                        self.assertLessEqual(abs(red-green), 2)
+                        self.assertLessEqual(abs(blue-green), 2)
