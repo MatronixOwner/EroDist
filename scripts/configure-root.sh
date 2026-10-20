@@ -31,11 +31,23 @@ mount -t proc proc "$ROOTFS/proc"
 mount --bind /tmp/.X11-unix "$ROOTFS/tmp/.X11-unix"
 chroot "$ROOTFS" dpkg --add-architecture i386
 chroot "$ROOTFS" apt-get -o APT::Update::Error-Mode=any -o Acquire::Retries=2 update
-chroot "$ROOTFS" apt-get -y --no-remove install /tmp/erodist-system.deb /tmp/erodist-installer.deb
+chroot "$ROOTFS" env ERODIST_IMAGE_BUILD=1 apt-get -y --no-remove install /tmp/erodist-system.deb /tmp/erodist-installer.deb
+cp "$ROOT/scripts/check-branding.py" "$ROOTFS/tmp/check-branding.py"
+chroot "$ROOTFS" python3 /tmp/check-branding.py
 cp "$ROOT/scripts/check-editions.py" "$ROOTFS/tmp/check-editions.py"
 chroot "$ROOTFS" python3 /tmp/check-editions.py
 cp "$ROOT/scripts/gui-smoke.py" "$ROOTFS/tmp/gui-smoke.py"
 xvfb-run -a -s '-screen 0 1280x800x24 -ac' chroot "$ROOTFS" env XAUTHORITY=/dev/null python3 /tmp/gui-smoke.py
+# Build the live initramfs with the selected EroDist theme, using the exact upstream kernel.
+KERNEL="$3"
+[[ -d "$ROOTFS/lib/modules/$KERNEL" || -d "$ROOTFS/usr/lib/modules/$KERNEL" ]]
+chroot "$ROOTFS" mkinitramfs -o /tmp/erodist-initrd "$KERNEL"
+lsinitramfs "$ROOTFS/tmp/erodist-initrd" > "$WORK/initrd-files.txt"
+grep -q 'scripts/casper' "$WORK/initrd-files.txt"
+grep -q 'plymouth/themes/erodist/erodist.script' "$WORK/initrd-files.txt"
+cp "$ROOTFS/tmp/erodist-initrd" "$WORK/changed/casper/$4"
+rm "$ROOTFS/tmp/erodist-initrd"
+cp "$ROOTFS/var/lib/erodist/branding.json" "$ROOT/artifacts/BRANDING-REPORT.json"
 chroot "$ROOTFS" dpkg --remove-architecture i386
 find "$ROOTFS/var/lib/apt/lists" -type f -name '*binary-i386*' -delete
-rm -f "$ROOTFS/tmp/erodist-system.deb" "$ROOTFS/tmp/erodist-installer.deb" "$ROOTFS/tmp/check-editions.py" "$ROOTFS/tmp/gui-smoke.py"
+rm -f "$ROOTFS/tmp/erodist-system.deb" "$ROOTFS/tmp/erodist-installer.deb" "$ROOTFS/tmp/check-editions.py" "$ROOTFS/tmp/gui-smoke.py" "$ROOTFS/tmp/check-branding.py"

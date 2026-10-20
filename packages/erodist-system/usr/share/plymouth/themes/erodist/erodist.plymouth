@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=EroDist
+Description=Neutral EroDist boot screen
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/erodist
+ScriptFile=/usr/share/plymouth/themes/erodist/erodist.script

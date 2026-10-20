@@ -1,0 +1,4 @@
+[x.dm.slick-greeter]
+logo='/usr/share/erodist/branding/erodist.svg'
+other-monitors-logo='/usr/share/erodist/branding/erodist.svg'
+background='/usr/share/backgrounds/erodist/black-gradient.png'

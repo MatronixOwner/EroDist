@@ -13,3 +13,16 @@ p.write_text('\n'.join(lines) + '\n')
 PY
     dconf update
 fi
+
+if [ "$1" = configure ] || [ "$1" = triggered ]; then
+    mkdir -p /var/lib/erodist
+    cp /usr/lib/python3/dist-packages/erodist/branding.py /var/lib/erodist/restore-branding.py
+    python3 -m erodist.branding
+    glib-compile-schemas /usr/share/glib-2.0/schemas
+    for theme in /usr/share/icons/*; do
+        if [ -f "$theme/index.theme" ]; then gtk-update-icon-cache -f -t "$theme"; fi
+    done
+    update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/erodist/erodist.plymouth 250
+    update-alternatives --set default.plymouth /usr/share/plymouth/themes/erodist/erodist.plymouth
+    if [ "${ERODIST_IMAGE_BUILD:-0}" != 1 ]; then update-initramfs -u; fi
+fi

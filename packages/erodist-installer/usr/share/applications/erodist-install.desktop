@@ -4,6 +4,6 @@ Name=Install EroDist
 Name[ru]=Установить EroDist
 Comment=Mint installer with EroDist edition selection
 Exec=ubiquity --desktop %k
-Icon=ubiquity
+Icon=erodist
 Categories=System;
 Terminal=false

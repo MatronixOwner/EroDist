@@ -32,7 +32,7 @@ jobs:
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools dconf-cli gnupg curl xvfb xauth
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools dconf-cli gnupg curl xvfb xauth python3-pil initramfs-tools-core file lz4 zstd
           df -h .
       - name: Verify original Mint and build Cinnamon editions image
         run: |
@@ -52,7 +52,7 @@ jobs:
         id: iso_archive
         uses: actions/upload-artifact@v4
         with:
-          name: EroDist-1.0.0-RC1-Cinnamon-ISO
+          name: EroDist-1.0.0-RC2-Cinnamon-ISO
           path: archive/*.iso
           compression-level: 0
           retention-days: 7

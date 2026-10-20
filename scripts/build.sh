@@ -42,7 +42,12 @@ bash "$ROOT/scripts/build-packages.sh"
 cp "$ROOT/artifacts/erodist-system.deb" "$WORK/rootfs/tmp/erodist-system.deb"
 cp "$ROOT/artifacts/erodist-installer.deb" "$WORK/rootfs/tmp/erodist-installer.deb"
 # Package registration, plugin checks and dependency simulation inside the actual Mint root.
-bash "$ROOT/scripts/configure-root.sh" "$WORK/rootfs" "$WORK"
+xorriso -osirrox on -indev "$ISO" -extract /casper/vmlinuz "$WORK/upstream-vmlinuz"
+KERNEL=$(file "$WORK/upstream-vmlinuz" | sed -n 's/.*version \([^ ,]*\).*/\1/p')
+[[ -n "$KERNEL" ]] || { echo 'Cannot identify upstream kernel'; exit 1; }
+if xorriso -indev "$ISO" -ls /casper/initrd.lz >/dev/null 2>&1; then INITRD=initrd.lz; else INITRD=initrd; fi
+bash "$ROOT/scripts/configure-root.sh" "$WORK/rootfs" "$WORK" "$KERNEL" "$INITRD"
+python3 "$ROOT/scripts/brand-iso.py" "$ISO" "$WORK/changed"
 chroot "$WORK/rootfs" dpkg-query -W -f='${Package} ${Version}\n' > "$WORK/changed/casper/filesystem.manifest"
 xorriso -osirrox on -indev "$ISO" -extract /casper/filesystem.manifest-remove "$WORK/changed/casper/filesystem.manifest-remove"
 printf '\nerodist-installer\n' >> "$WORK/changed/casper/filesystem.manifest-remove"
@@ -67,17 +72,22 @@ from pathlib import Path
 import sys
 from mint_common import update_md5
 work=Path(sys.argv[1])
-changed={f'casper/{p.name}':p for p in (work/'changed/casper').iterdir()}
+changed={p.relative_to(work/'changed').as_posix():p for p in (work/'changed').rglob('*') if p.is_file()}
 (work/'changed/md5sum.txt').write_text(update_md5((work/'original-md5sum.txt').read_text(),changed))
 PY
 # Replay original hybrid BIOS/UEFI boot equipment, including appended EFI partitions.
+BOOT_MAP=()
+while IFS= read -r -d '' image; do
+  BOOT_MAP+=(-map "$image" "/${image#"$WORK/changed/"}")
+done < <(find "$WORK/changed" -type f ! -path "$WORK/changed/casper/*" ! -name md5sum.txt -print0)
 xorriso -indev "$ISO" -outdev "$ROOT/artifacts/$OUTPUT" \
   -boot_image any replay \
   -map "$WORK/changed/casper/filesystem.squashfs" /casper/filesystem.squashfs \
+  -map "$WORK/changed/casper/$INITRD" "/casper/$INITRD" \
   -map "$WORK/changed/casper/filesystem.size" /casper/filesystem.size \
   -map "$WORK/changed/casper/filesystem.manifest" /casper/filesystem.manifest \
   -map "$WORK/changed/casper/filesystem.manifest-remove" /casper/filesystem.manifest-remove \
-  -map "$WORK/changed/md5sum.txt" /md5sum.txt
+  -map "$WORK/changed/md5sum.txt" /md5sum.txt "${BOOT_MAP[@]}"
 xorriso -indev "$ROOT/artifacts/$OUTPUT" -report_el_torito plain -report_system_area plain > "$ROOT/artifacts/BOOT-REPORT.txt" 2>&1
 python3 - "$WORK/upstream-boot.txt" "$ROOT/artifacts/BOOT-REPORT.txt" <<'PY'
 from pathlib import Path

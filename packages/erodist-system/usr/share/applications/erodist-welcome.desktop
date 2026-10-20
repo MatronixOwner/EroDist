@@ -3,6 +3,6 @@ Type=Application
 Name=EroDist First Run
 Name[ru]=Первый запуск EroDist
 Exec=erodist-welcome
-Icon=preferences-system
+Icon=erodist
 Categories=Settings;System;
 Terminal=false

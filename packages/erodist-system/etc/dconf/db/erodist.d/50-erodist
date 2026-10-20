@@ -10,4 +10,5 @@ icon-theme='Mint-Y-Dark'
 name='Mint-Y-Dark'
 
 [org/cinnamon]
+app-menu-icon-name='erodist'
 favorite-apps=['erodist-settings.desktop', 'firefox.desktop', 'nemo.desktop', 'org.gnome.Terminal.desktop']

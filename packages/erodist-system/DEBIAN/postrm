@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 if [ "$1" = remove ] || [ "$1" = purge ]; then
+    if [ -f /var/lib/erodist/branding.json ]; then
+        python3 /var/lib/erodist/restore-branding.py restore
+        rm -f /var/lib/erodist/restore-branding.py
+    fi
+    update-alternatives --remove default.plymouth /usr/share/plymouth/themes/erodist/erodist.plymouth
     if [ -f /etc/dconf/profile/user ]; then
         sed -i '/^system-db:erodist$/d' /etc/dconf/profile/user
     fi

@@ -87,7 +87,7 @@ class EditionTests(unittest.TestCase):
         base = json.loads((SYSTEM / 'usr/share/erodist/base.json').read_text())
         self.assertEqual(base['creator'], 'd50130483-ship-it')
         self.assertEqual(base['edition'], 'live')
-        self.assertEqual(base['version'], '1.0.0-rc1-mint1')
+        self.assertEqual(base['version'], '1.0.0-rc2-mint1')
 
     def test_worker_status_tracks_success_and_failure(self):
         entries = catalog(SYSTEM / 'usr/share/erodist/editions.json')

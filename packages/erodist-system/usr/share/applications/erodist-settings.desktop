@@ -5,6 +5,6 @@ Name[ru]=Центр настроек EroDist
 Comment=System settings and edition information
 Comment[ru]=Настройки, редакция и сведения о системе
 Exec=erodist-settings
-Icon=preferences-system
+Icon=erodist
 Categories=Settings;System;
 Terminal=false
