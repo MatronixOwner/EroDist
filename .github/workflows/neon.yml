@@ -1,47 +1,71 @@
-name: EroDist KDE neon
+name: EroDist clean neon ISO
 on:
   push:
     branches: [arena/a42c77fd-erodist]
-    paths: ['neon/**', 'scripts/neon-*', 'packages/neon-*/**', '.github/workflows/neon.yml', 'tests/test_neon.py']
+    paths: ['neon/**', 'scripts/neon-clean-iso.sh', '.github/workflows/neon.yml']
 permissions:
   contents: write
   checks: write
 concurrency:
-  group: erodist-neon-${{ github.ref }}
-  cancel-in-progress: true
+  group: erodist-neon-clean-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  audit:
+  build:
+    if: contains(github.event.head_commit.message, '[neon-iso]')
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
-      - name: Unit tests
-        run: python3 -m unittest discover -s tests -q
-      - name: Install ISO inspection tools
+      - name: Install verification tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools gnupg
-      - name: Inspect official upstream distribution
+          sudo apt-get install -y --no-install-recommends xorriso gnupg
+      - name: Prepare verified clean base ISO
         run: |
           set -o pipefail
-          bash scripts/neon-audit.sh 2>&1 | tee /tmp/neon-audit.log
-      - name: Upload native Qt inspection artifacts
-        if: success()
+          bash scripts/neon-clean-iso.sh 2>&1 | tee /tmp/neon-clean.log
+      - name: One ZIP with one complete ISO
+        id: archive
         uses: actions/upload-artifact@v4
         with:
-          name: EroDist-neon-Qt-inspection-not-an-ISO
-          path: artifacts/
-          retention-days: 7
-      - name: Record audit output
+          name: EroDist-clean-start-neon-ISO
+          path: artifacts/neon-clean/*.iso
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Publish verification and download information
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_URL: ${{ steps.archive.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.archive.outputs.artifact-digest }}
+        run: |
+          tag="neon-clean-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          cat > /tmp/neon-release.md <<EOF_NOTES
+          # Чистый старт EroDist на KDE neon
+          По решению пользователя начинаем с нуля: этот ISO — **неизменённая официальная KDE neon Desktop User Edition**, без прежних редакций Home/Pro/Program, центра управления и других пакетов EroDist. Это базовый образ, не готовая кастомизация EroDist.
+
+          [Скачать один ZIP с полным ISO]($ARTIFACT_URL). Нужен вход в GitHub. Хранение: 14 дней; точный срок указан в Actions. Распакуйте и запишите находящийся внутри ISO. Части и скрипты сборки не нужны.
+
+          SHA256 ZIP: \`$ARTIFACT_DIGEST\`.
+
+          SHA256 исходного ISO и подпись GPG проверены. Найдены загрузочные записи BIOS/UEFI, штатные Plasma и Calamares; старых пакетов EroDist нет. Полная загрузка, установка в VM и Hyper-V в этой сборке не проверены.
+          EOF_NOTES
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease --title "EroDist: чистая база KDE neon" --notes-file /tmp/neon-release.md build/neon-clean/SHA256SUMS build/neon-clean/verification.json build/neon-clean/upstream.sig
+          cat /tmp/neon-release.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Record diagnostic output
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          ARTIFACT_URL: ${{ steps.archive.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.archive.outputs.artifact-digest }}
         run: |
-          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "audit") | .id' | head -1)
+          check_id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "build") | .id' | head -1)
           python3 - <<'PY'
-          import json
+          import json,os
           from pathlib import Path
-          text=Path('/tmp/neon-audit.log').read_text(errors='replace')[-55000:]
-          Path('/tmp/neon-output.json').write_text(json.dumps({'output': {'title':'KDE neon upstream audit','summary':'Upstream inspection, not an ISO release.','text':'```text\n'+text+'\n```'}}))
+          log=Path('/tmp/neon-clean.log')
+          text=log.read_text(errors='replace')[-45000:] if log.exists() else 'Failed before preparation.'
+          summary='Clean upstream base, no previous EroDist customization.\n\nZIP: '+os.environ.get('ARTIFACT_URL','')+'\n\nZIP SHA256: '+os.environ.get('ARTIFACT_DIGEST','')
+          Path('/tmp/neon-check.json').write_text(json.dumps({'output':{'title':'Clean neon ISO verification','summary':summary,'text':'```text\n'+text+'\n```'}}))
           PY
-          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/neon-output.json
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$check_id" --input /tmp/neon-check.json
