@@ -1,0 +1,7 @@
+{
+  "name": "EroDist",
+  "version": "1.0.0-alpha1-neon1",
+  "creator": "d50130483-ship-it",
+  "base": "KDE neon User Edition / Plasma",
+  "edition": "live"
+}

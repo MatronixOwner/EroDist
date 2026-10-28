@@ -1,0 +1,9 @@
+Package: erodist-neon-system
+Version: 1.0.0~alpha1-neon1
+Architecture: all
+Maintainer: EroDist <erodist@localhost>
+Depends: python3, python3-pyside6.qtwidgets
+Conflicts: erodist-system, erodist-installer
+Description: Native Qt settings and Plasma appearance for EroDist KDE neon
+ Carries EroDist identity, read-only local diagnostics and Plasma design assets.
+ Does not depend on Cinnamon, Mint tools, GTK or Ubiquity.

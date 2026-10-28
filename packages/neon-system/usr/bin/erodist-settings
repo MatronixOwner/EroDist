@@ -1,0 +1,3 @@
+#!/usr/bin/python3
+from erodist_neon.settings import main
+main()

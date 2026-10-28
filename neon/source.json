@@ -1,0 +1,11 @@
+{
+  "edition": "KDE neon Desktop User Edition",
+  "url": "https://files.kde.org/neon/images/desk/user/20261025-1825/neon-user-desk-20261025-1825.iso",
+  "sha256": "0ed36989556a7a27bb88296c198f305d5629a294d38f5f1b704047265be31015",
+  "signing_fingerprint": "B74EA2162376765BEAC3AE4345F4C354638D1F29",
+  "ubuntu_base": "24.04 noble",
+  "plasma_version_at_audit": "6.8.1",
+  "calamares_version_at_audit": "3.4.2",
+  "release": "1.0.0-alpha1-neon1",
+  "output": "erodist-1.0.0-alpha1-neon1-plasma-amd64.iso"
+}

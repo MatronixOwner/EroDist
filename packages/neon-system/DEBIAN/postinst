@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+if [ "$1" = configure ]; then
+    # Only new-user defaults; never rewrite existing users' desktop layouts.
+    python3 - <<'PY'
+import configparser
+from pathlib import Path
+root=Path('/etc/skel/.config')
+root.mkdir(parents=True,exist_ok=True)
+p=root/'kdeglobals'
+c=configparser.ConfigParser(interpolation=None,strict=False)
+c.optionxform=str
+if p.exists(): c.read(p)
+for section,values in {'General':{'ColorScheme':'EroDistGraphite'},'KDE':{'LookAndFeelPackage':'org.erodist.desktop','widgetStyle':'Breeze'},'Icons':{'Theme':'breeze-dark'}}.items():
+ if not c.has_section(section): c.add_section(section)
+ for key,value in values.items(): c.set(section,key,value)
+with p.open('w') as stream:c.write(stream,space_around_delimiters=False)
+PY
+fi

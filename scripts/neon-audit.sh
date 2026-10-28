@@ -18,19 +18,22 @@ echo '=== UPSTREAM SHA256'
 sha256sum base.iso
 xorriso -indev base.iso -ls /casper
 xorriso -osirrox on -indev base.iso -extract /casper/filesystem.squashfs base.squashfs
-unsquashfs -d root base.squashfs etc/os-release etc/lsb-release etc/calamares usr/share/calamares var/lib/dpkg/status etc/apt/sources.list.d usr/share/xsessions usr/share/wayland-sessions
+unsquashfs -d root base.squashfs usr/lib/os-release usr/etc/calamares var/lib/dpkg/info/calamares-settings.list etc/os-release etc/lsb-release etc/calamares usr/share/calamares var/lib/dpkg/status etc/apt/sources.list.d usr/share/xsessions usr/share/wayland-sessions
 python3 - <<'PY'
 from pathlib import Path
 print('=== OS RELEASE')
-for p in [Path('root/etc/os-release'),Path('root/etc/lsb-release')]:
+for p in [Path('root/usr/lib/os-release'),Path('root/etc/lsb-release')]:
  if p.exists(): print(p, p.read_text())
 print('=== PACKAGE VERSIONS')
 for paragraph in Path('root/var/lib/dpkg/status').read_text().split('\n\n'):
  lines=dict(line.split(': ',1) for line in paragraph.splitlines() if ': ' in line and not line.startswith(' '))
  if lines.get('Package','').startswith(('plasma-workspace','plasma-desktop','calamares','neon-settings','python3-pyqt6','python3-pyside6','libreoffice','firefox','linux-image')):
   print(lines.get('Package'),lines.get('Version'))
+print('=== CALAMARES PACKAGE FILE LIST')
+p=Path('root/var/lib/dpkg/info/calamares-settings.list')
+if p.exists(): print(p.read_text())
 print('=== CALAMARES FILES')
-for root in [Path('root/etc/calamares'),Path('root/usr/share/calamares')]:
+for root in [Path('root/etc/calamares'),Path('root/usr/share/calamares'),Path('root/usr/etc/calamares')]:
  if not root.exists(): continue
  for p in sorted(root.rglob('*')):
   if p.is_file() and p.suffix in ('.conf','.yaml','.yml'):
