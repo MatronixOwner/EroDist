@@ -18,7 +18,7 @@ QScrollArea{border:0;} QToolTip{background:#25272f;color:#eee;}'''
 
 
 def create_window():
-    from PySide6.QtCore import Qt, QObject, QThread, Signal
+    from PySide6.QtCore import Qt, QObject, QThread, Signal, Slot
     from PySide6.QtWidgets import QMainWindow,QWidget,QVBoxLayout,QHBoxLayout,QListWidget,QStackedWidget,QLabel,QPushButton,QScrollArea,QTextEdit,QFileDialog
     from .info import collect
     window=QMainWindow()
@@ -71,6 +71,7 @@ def create_window():
     save.clicked.connect(save_report)
     class Reader(QObject):
         finished=Signal(str)
+        @Slot()
         def run(self):
             try: text=collect()
             except (OSError,ValueError) as exc: text='Ошибка чтения: '+str(exc)
@@ -78,7 +79,14 @@ def create_window():
     # The window owns thread lifetime; no UI calls from the hardware reader.
     thread=QThread(window); reader=Reader(); reader.moveToThread(thread)
     thread.started.connect(reader.run)
-    reader.finished.connect(lambda text:(report.setPlainText(text),save.setEnabled(True)))
+    class Display(QObject):
+        @Slot(str)
+        def show_report(self,text):
+            report.setPlainText(text)
+            save.setEnabled(True)
+    display=Display(window)
+    window._display=display
+    reader.finished.connect(display.show_report,Qt.ConnectionType.QueuedConnection)
     reader.finished.connect(thread.quit)
     reader.finished.connect(reader.deleteLater)
     thread.start()

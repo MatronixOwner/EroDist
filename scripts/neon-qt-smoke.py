@@ -7,8 +7,11 @@ from PySide6.QtCore import QEventLoop, QTimer
 from PySide6.QtWidgets import QApplication, QListWidget, QLabel, QPushButton, QScrollArea
 from erodist_neon.settings import create_window
 
+print('Creating native Qt application',flush=True)
 app=QApplication([])
+print('Constructing settings',flush=True)
 window=create_window()
+print('Showing settings',flush=True)
 window.show()
 output=Path('/tmp/neon-qt-captures')
 output.mkdir(exist_ok=True)

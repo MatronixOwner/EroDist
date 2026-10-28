@@ -65,7 +65,7 @@ sudo cp "$REPO/artifacts/erodist-neon-system.deb" "$ROOT/tmp/"
 sudo cp "$REPO/scripts/neon-qt-smoke.py" "$ROOT/tmp/"
 sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get update
 sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/erodist-neon-system.deb
-sudo chroot "$ROOT" /usr/bin/python3 /tmp/neon-qt-smoke.py
+sudo chroot "$ROOT" /usr/bin/python3 -X faulthandler -u /tmp/neon-qt-smoke.py
 mkdir -p "$REPO/artifacts/neon-qt-captures"
 sudo cp "$ROOT"/tmp/neon-qt-captures/*.png "$REPO/artifacts/neon-qt-captures/"
 sudo chown -R "$(id -u):$(id -g)" "$REPO/artifacts"
