@@ -2,7 +2,7 @@ name: EroDist KDE neon
 on:
   push:
     branches: [arena/a42c77fd-erodist]
-    paths: ['neon/**', 'scripts/neon-*', 'packages/neon-*/**', '.github/workflows/neon.yml']
+    paths: ['neon/**', 'scripts/neon-*', 'packages/neon-*/**', '.github/workflows/neon.yml', 'tests/test_neon.py']
 permissions:
   contents: write
   checks: write
@@ -15,6 +15,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -q
       - name: Install ISO inspection tools
         run: |
           sudo apt-get update
@@ -23,6 +25,13 @@ jobs:
         run: |
           set -o pipefail
           bash scripts/neon-audit.sh 2>&1 | tee /tmp/neon-audit.log
+      - name: Upload native Qt inspection artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EroDist-neon-Qt-inspection-not-an-ISO
+          path: artifacts/
+          retention-days: 7
       - name: Record audit output
         if: always()
         env:

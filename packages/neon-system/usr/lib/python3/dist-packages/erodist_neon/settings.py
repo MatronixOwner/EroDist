@@ -8,7 +8,7 @@ SECTIONS = [
  ('Устройства', [('Экран', ['systemsettings','kcm_kscreen']), ('Звук', ['systemsettings','kcm_pulseaudio']), ('Клавиатура', ['systemsettings','kcm_keyboard'])]),
  ('Сеть и время', [('Сеть', ['systemsettings','kcm_networkmanagement']), ('Дата и время', ['systemsettings','kcm_clock'])]),
 ]
-STYLE = '''QWidget{background:#131419;color:#eeeeef;font-size:14px;} QMainWindow{background:#0e0f12;}
+STYLE = '''QWidget{background:#131419;color:#eeeeef;} QMainWindow{background:#0e0f12;}
 QListWidget{background:#1a1b21;border:0;border-radius:12px;min-width:150px;padding:8px;}
 QListWidget::item{padding:12px;border-radius:8px;} QListWidget::item:selected{background:#363842;}
 QPushButton{background:#25272f;border:1px solid #464954;border-radius:10px;padding:12px;text-align:left;}
