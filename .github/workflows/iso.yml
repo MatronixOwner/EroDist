@@ -1,8 +1,5 @@
 name: Build EroDist Mint ISO
 on:
-  push:
-    branches: [arena/a42c77fd-erodist]
-    paths: ['mint/**', 'packages/**', 'scripts/**', 'tests/**', 'site/deploy.json', '.github/workflows/iso.yml']
   workflow_dispatch:
     inputs:
       upload_url:
