@@ -1,5 +1,15 @@
 # EroDist — новая разработка на KDE neon / Plasma
 
+## Новое: иконки и Центр настроек EroDist
+
+По новому запросу созданы **отдельные новые пакеты**: `erodist-control-center` (Qt 6) и `erodist-icons` (Graphite). Без прежних редакций/мастеров, без зависимости от отменённого Qt-прототипа. Они **пока не включены в чистый ISO ниже**.
+
+[Скачать приложение и иконки 0.1.1](https://github.com/MatronixOwner/EroDist/releases/tag/desktop-0.1.1-3-1) · [Посмотреть иконки](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/icons.png) · [Окно приложения](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/settings-home.png).
+
+[Установка, возможности и границы проверки](docs/control-center.md). Реальное Qt-окно прошло геометрию вплоть до 640×460 со шрифтом 13; проверены модули KDE, экспорт и запись темы настоящим инструментом Plasma в изолированную конфигурацию. Это ещё не проверка полного загруженного рабочего стола.
+
+---
+
 **Начинаем с нуля, без переноса прежнего EroDist.** Подготовлен чистый стартовый образ: неизменённая официальная KDE neon Desktop User Edition. Это база для новой разработки, не кастомизированный выпуск EroDist.
 
 - [Скачать ISO напрямую с сервера KDE](https://files.kde.org/neon/images/desk/user/20261025-1825/neon-user-desk-20261025-1825.iso).
