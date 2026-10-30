@@ -1,0 +1,53 @@
+name: QEMU Graphite 0.3 observation
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['.github/workflows/graphite-observation.yml']
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  graphite-observation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 41088794347
+          name: EroDist-0.3.0-test1-Graphite-Wine-ISO
+          path: artifacts/desktop-iso
+      - name: Verify published Graphite ISO
+        run: |
+          echo '2d1972499a3c99c82432a7e75e60481754870354c9bf6f7f5dd67b79ba8eb2fd  artifacts/desktop-iso/erodist-0.3.0-test1-graphite-wine-amd64.iso' | sha256sum -c -
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 tesseract-ocr tesseract-ocr-eng tesseract-ocr-rus python3-pil
+      - name: Observe published Graphite without rebuilding ISO
+        run: |
+          set -o pipefail
+          if [ -e /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
+          python3 scripts/desktop-vm-smoke.py 2>&1 | tee /tmp/graphite-observation.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QEMU-Graphite-0.3-observations
+          path: |
+            artifacts/desktop-iso/*.png
+            artifacts/desktop-iso/VM-SMOKE.json
+            build/vm-smoke/*.txt
+            build/vm-smoke/*.log
+      - name: Record observed Graphite result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[]|select(.name=="graphite-observation")|.id' | head -1)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/graphite-observation.log')
+          text=p.read_text(errors='replace')[-18000:] if p.exists() else 'Failed before VM launch.'
+          Path('/tmp/graphite-observation.json').write_text(json.dumps({'output':{'title':'Published Graphite ISO QEMU observations','summary':'SHA-pinned published Graphite 0.3. No Hyper-V or disk installation claim.','text':'```\n'+text+'\n```'}}))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$id" --input /tmp/graphite-observation.json
