@@ -1,0 +1,53 @@
+name: QEMU baseline 0.2 observation
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['.github/workflows/vm-baseline.yml']
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  vm-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 41062176936
+          name: EroDist-0.2.0-test1-Plasma-Settings-Wine-ISO
+          path: artifacts/desktop-iso
+      - name: Verify previously delivered baseline ISO
+        run: |
+          echo 'd1195d162d33877c72449224255a87c757b5feb61a4c90e28f2a860edea663bd  artifacts/desktop-iso/erodist-0.2.0-test1-neon-settings-wine-amd64.iso' | sha256sum -c -
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 tesseract-ocr tesseract-ocr-eng tesseract-ocr-rus python3-pil
+      - name: Observe actual baseline boot independently of new build
+        run: |
+          set -o pipefail
+          if [ -e /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
+          python3 scripts/desktop-vm-smoke.py 2>&1 | tee /tmp/vm-baseline.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QEMU-baseline-0.2-not-the-new-Graphite-ISO
+          path: |
+            artifacts/desktop-iso/*.png
+            artifacts/desktop-iso/VM-SMOKE.json
+            build/vm-smoke/*.txt
+            build/vm-smoke/*.log
+      - name: Record observed baseline result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[]|select(.name=="vm-baseline")|.id' | head -1)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/vm-baseline.log')
+          text=p.read_text(errors='replace')[-18000:] if p.exists() else 'Failed before VM launch.'
+          Path('/tmp/vm-baseline.json').write_text(json.dumps({'output':{'title':'Earlier baseline ISO QEMU observations','summary':'This is the already delivered 0.2 baseline, not the new Graphite build. No Hyper-V or disk installation claim.','text':'```\n'+text+'\n```'}}))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$id" --input /tmp/vm-baseline.json
