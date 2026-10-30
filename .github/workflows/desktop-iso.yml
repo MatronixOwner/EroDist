@@ -7,7 +7,7 @@ permissions:
   contents: write
   checks: write
 concurrency:
-  group: erodist-desktop-iso-${{ github.ref }}
+  group: erodist-graphite-iso-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   iso:

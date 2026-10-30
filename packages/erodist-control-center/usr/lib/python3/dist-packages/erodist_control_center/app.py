@@ -109,7 +109,8 @@ class Center(QMainWindow):
         self.navigation.setCurrentRow(0)
 
     def page(self, title, icon, subtitle):
-        item = QListWidgetItem(QIcon.fromTheme(icon), title)
+        item = QListWidgetItem(QIcon.fromTheme(icon), 'Wine · EXE' if title == 'Windows-программы' else title)
+        item.setToolTip(title)
         self.navigation.addItem(item)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)

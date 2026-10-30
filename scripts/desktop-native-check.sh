@@ -36,7 +36,18 @@ sudo chroot "$ROOT" dpkg-query -W -f='${binary:Package} ${Version}\n' 'linux-ima
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo chroot "$ROOT" dpkg --add-architecture i386
 fi
-sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get update
+if ! sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 update; then
+    # The upstream HTTP mirror occasionally responds 502; retain keys/pins and retry HTTPS.
+    sudo python3 - "$ROOT" <<'APT'
+from pathlib import Path
+import sys
+for p in (Path(sys.argv[1])/'etc/apt').rglob('*'):
+    if p.is_file() and p.suffix in ('.list','.sources'):
+        old=p.read_text();new=old.replace('http://archive.neon.kde.org/','https://archive.neon.kde.org/')
+        if new!=old:p.write_text(new)
+APT
+    sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 update
+fi
 sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/erodist-icons.deb /tmp/erodist-control-center.deb /tmp/erodist-desktop.deb python3-pyside6.qttest
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends wine wine64 wine32:i386 fonts-wine
