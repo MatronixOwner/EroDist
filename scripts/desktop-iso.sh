@@ -49,8 +49,8 @@ sudo du -sx --block-size=1 "$ROOT" | cut -f1 > "$CHANGED/casper/filesystem.size"
 xorriso -indev "$ISO" -report_el_torito plain -report_system_area plain > "$WORK/upstream-boot.txt" 2>&1
 xorriso -osirrox on -indev "$ISO" -extract /md5sum.txt "$WORK/original-md5sum.txt" -extract /casper/vmlinuz "$WORK/upstream-vmlinuz" -extract /casper/initrd "$WORK/upstream-initrd"
 bash scripts/desktop-initrd.sh "$WORK"
-# XZ keeps the complete 32/64-bit Wine image reasonably small; no split ISO.
-sudo mksquashfs "$ROOT" "$CHANGED/casper/filesystem.squashfs" -noappend -comp xz -b 1M -processors 2
+# Zstd reduces live decompression work; both Wine architectures remain in one full ISO.
+sudo mksquashfs "$ROOT" "$CHANGED/casper/filesystem.squashfs" -noappend -comp zstd -Xcompression-level 15 -b 1M -processors 2
 python3 - "$WORK" <<'PY'
 from pathlib import Path
 import hashlib,re,sys
@@ -75,7 +75,7 @@ for name,path in files.items():
 (changed/'md5sum.txt').write_text('\n'.join(lines)+'\n')
 print('Updated medium integrity checks; boot image/catalog checksums excluded because replay relocates them.')
 PY
-xorriso -indev "$ISO" -outdev "$OUTPUT" -boot_image any replay -iso_level 3 -volid "${CONFIG[1]}" \
+xorriso -indev "$ISO" -outdev "$OUTPUT" -boot_image any replay -compliance iso_9660_level=3 -volid "${CONFIG[1]}" \
  -map "$CHANGED/casper/filesystem.squashfs" /casper/filesystem.squashfs \
  -map "$CHANGED/casper/initrd" /casper/initrd \
  -map "$CHANGED/casper/filesystem.manifest" /casper/filesystem.manifest \
