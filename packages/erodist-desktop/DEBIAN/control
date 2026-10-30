@@ -1,0 +1,8 @@
+Package: erodist-desktop
+Version: 0.3.0
+Architecture: all
+Maintainer: EroDist Project <erodist@localhost>
+Depends: erodist-icons, plasma-workspace, plymouth
+Description: EroDist Graphite desktop and boot appearance
+ Fresh Plasma defaults, graphite desktop, native login background and Plymouth.
+ Does not change authentication, partitioning or install edition selection.

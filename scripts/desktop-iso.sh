@@ -8,6 +8,7 @@ WORK="$REPO/build/desktop-native"
 ROOT="$WORK/root"
 CHANGED="$WORK/changed"
 mkdir -p "$CHANGED/casper" artifacts/desktop-iso
+cp artifacts/desktop/captures/settings-home.png artifacts/desktop/captures/settings-wine.png artifacts/desktop-iso/
 readarray -t CONFIG < <(python3 - <<'PY'
 import json
 c=json.load(open('neon/image.json'))
@@ -38,7 +39,7 @@ meta=root/'usr/share/erodist-image/build.json';meta.parent.mkdir(parents=True,ex
 meta.write_text(json.dumps({'image':json.load(open('neon/image.json')),'upstream':json.load(open('neon/source.json'))},indent=2)+'\n')
 PY
 # Remove testing-only material, with no shared Wine prefix and no root theme settings.
-sudo rm -f "$ROOT/tmp/erodist-control-center.deb" "$ROOT/tmp/erodist-icons.deb" "$ROOT/tmp/desktop-smoke.py" "$ROOT/tmp/wine-smoke.py" "$ROOT/tmp/erodist-kcms.txt" "$ROOT/tmp/erodist-report-test.txt"
+sudo rm -f "$ROOT/tmp/erodist-control-center.deb" "$ROOT/tmp/erodist-icons.deb" "$ROOT/tmp/desktop-smoke.py" "$ROOT/tmp/wine-smoke.py" "$ROOT/tmp/erodist-desktop.deb" "$ROOT/tmp/erodist-kcms.txt" "$ROOT/tmp/erodist-report-test.txt"
 sudo rm -rf "$ROOT/tmp/desktop-captures"
 sudo chroot "$ROOT" apt-get clean
 sudo chroot "$ROOT" dpkg --audit > "$WORK/dpkg-audit.txt"
@@ -47,6 +48,7 @@ sudo chroot "$ROOT" dpkg-query -W -f='${binary:Package} ${Version}\n' > "$CHANGE
 sudo du -sx --block-size=1 "$ROOT" | cut -f1 > "$CHANGED/casper/filesystem.size"
 xorriso -indev "$ISO" -report_el_torito plain -report_system_area plain > "$WORK/upstream-boot.txt" 2>&1
 xorriso -osirrox on -indev "$ISO" -extract /md5sum.txt "$WORK/original-md5sum.txt" -extract /casper/vmlinuz "$WORK/upstream-vmlinuz" -extract /casper/initrd "$WORK/upstream-initrd"
+bash scripts/desktop-initrd.sh "$WORK"
 # XZ keeps the complete 32/64-bit Wine image reasonably small; no split ISO.
 sudo mksquashfs "$ROOT" "$CHANGED/casper/filesystem.squashfs" -noappend -comp xz -b 1M -processors 2
 python3 - "$WORK" <<'PY'
@@ -73,8 +75,9 @@ for name,path in files.items():
 (changed/'md5sum.txt').write_text('\n'.join(lines)+'\n')
 print('Updated medium integrity checks; boot image/catalog checksums excluded because replay relocates them.')
 PY
-xorriso -indev "$ISO" -outdev "$OUTPUT" -boot_image any replay -volid "${CONFIG[1]}" \
+xorriso -indev "$ISO" -outdev "$OUTPUT" -boot_image any replay -iso_level 3 -volid "${CONFIG[1]}" \
  -map "$CHANGED/casper/filesystem.squashfs" /casper/filesystem.squashfs \
+ -map "$CHANGED/casper/initrd" /casper/initrd \
  -map "$CHANGED/casper/filesystem.manifest" /casper/filesystem.manifest \
  -map "$CHANGED/casper/filesystem.size" /casper/filesystem.size \
  -map "$CHANGED/md5sum.txt" /md5sum.txt
@@ -84,7 +87,7 @@ for platform in BIOS UEFI; do grep -q "$platform" artifacts/desktop-iso/BOOT-REP
 xorriso -osirrox on -indev "$OUTPUT" -extract / "$WORK/final-iso"
 (cd "$WORK/final-iso" && md5sum --quiet -c md5sum.txt)
 cmp "$WORK/upstream-vmlinuz" "$WORK/final-iso/casper/vmlinuz"
-cmp "$WORK/upstream-initrd" "$WORK/final-iso/casper/initrd"
+cmp "$CHANGED/casper/initrd" "$WORK/final-iso/casper/initrd"
 cmp "$CHANGED/casper/filesystem.squashfs" "$WORK/final-iso/casper/filesystem.squashfs"
 unsquashfs -cat "$WORK/final-iso/casper/filesystem.squashfs" var/lib/dpkg/status > "$WORK/final-status.txt"
 python3 - "$WORK" <<'PY'
@@ -98,9 +101,10 @@ for block in (work/'final-status.txt').read_text().split('\n\n'):
  installed[name+':'+arch]=fields['Version'];installed[name]=fields['Version']
 for name in image['packages']:assert name in installed, name
 for name in ('erodist-system','erodist-installer','erodist-neon-system','cinnamon'):assert name not in installed,name
-result={'image':image,'installed_versions':{p:installed[p] for p in image['packages']},'wine_cmd_smoke':['win32','win64'],'kernel_initrd':'byte-identical upstream','medium_checksums':'passed','boot_records':['BIOS','UEFI'],'full_vm_install_tested':False,'hyper_v_tested':False}
+result={'image':image,'installed_versions':{p:installed[p] for p in image['packages']},'wine_cmd_smoke':['win32','win64'],'kernel':'byte-identical upstream','initrd':'Plymouth only; original core payload verified','medium_checksums':'passed','boot_records':['BIOS','UEFI'],'full_vm_install_tested':False,'hyper_v_tested':False}
 Path('artifacts/desktop-iso/VERIFICATION.json').write_text(json.dumps(result,indent=2)+'\n')
 print('PASS final ISO contains preinstalled EroDist app, icons and both Wine architectures.')
 PY
 (cd artifacts/desktop-iso && sha256sum "${CONFIG[0]}" > SHA256SUMS)
 cat artifacts/desktop-iso/SHA256SUMS
+cat artifacts/desktop-iso/VERIFICATION.json

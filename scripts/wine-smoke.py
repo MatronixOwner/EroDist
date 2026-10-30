@@ -14,7 +14,8 @@ print(subprocess.check_output(['wine', '--version'], text=True).strip(), flush=T
 # Stop wineserver before removing each prefix or squashing the root filesystem.
 for arch in ('win64', 'win32'):
     with tempfile.TemporaryDirectory(prefix='erodist-wine-') as directory:
-        env = dict(os.environ, WINEPREFIX=str(Path(directory)/'prefix'), WINEARCH=arch,
+        home=Path(directory)/'home';home.mkdir()
+        env = dict(os.environ, HOME=str(home), XDG_CONFIG_HOME=str(home/'config'), XDG_DATA_HOME=str(home/'data'), XDG_CACHE_HOME=str(home/'cache'), WINEPREFIX=str(Path(directory)/'prefix'), WINEARCH=arch,
                    WINEDEBUG='-all', WINEDLLOVERRIDES='mscoree,mshtml=', DISPLAY='')
         try:
             result = subprocess.run(['wine', 'cmd', '/c', 'echo ERODIST_WINE_OK'],

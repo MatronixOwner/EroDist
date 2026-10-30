@@ -14,7 +14,7 @@ class DesktopISOTests(unittest.TestCase):
 
     def test_build_preserves_boot_and_checks_roundtrip(self):
         build=(ROOT/'scripts/desktop-iso.sh').read_text()
-        for safety in ('ERODIST_WITH_WINE=1','/proc/self/mountinfo','-boot_image any replay','md5sum --quiet -c','cmp "$WORK/upstream-vmlinuz"','cmp "$WORK/upstream-initrd"','final-status.txt','full_vm_install_tested'):
+        for safety in ('ERODIST_WITH_WINE=1','/proc/self/mountinfo','-boot_image any replay','md5sum --quiet -c','cmp "$WORK/upstream-vmlinuz"','cmp "$CHANGED/casper/initrd"','final-status.txt','full_vm_install_tested'):
             self.assertIn(safety,build)
         self.assertNotIn('configure-root.sh',build)
         self.assertNotIn('ubi-erodist',build)

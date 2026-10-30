@@ -80,6 +80,21 @@ for index,(name,title) in enumerate(icons):
 painter.end();assert image.save(str(out/'icons.png'))
 window.resize(1060,740);window.navigation.setCurrentRow(0);settle();window.grab().save(str(out/'settings-home.png'))
 window.navigation.setCurrentRow(1);settle();window.grab().save(str(out/'settings-appearance.png'))
+# New Wine actions: chooser cancellation and explicit confirmation must not spawn anything.
+from PySide6.QtWidgets import QMessageBox
+with patch('erodist_control_center.app.QFileDialog.getOpenFileName',return_value=('','')):
+ with patch('erodist_control_center.app.QProcess.startDetached') as launch:
+  window.wine_action('run');launch.assert_not_called()
+with patch('erodist_control_center.wine.command_for',return_value=('/usr/bin/wine',['/tmp/test.exe'])):
+ with patch('erodist_control_center.app.QFileDialog.getOpenFileName',return_value=('/tmp/test.exe','')):
+  with patch.object(QMessageBox,'exec',return_value=QMessageBox.StandardButton.Cancel):
+   with patch('erodist_control_center.app.QProcess.startDetached') as launch:
+    window.wine_action('run');launch.assert_not_called()
+  with patch.object(QMessageBox,'exec',return_value=QMessageBox.StandardButton.Yes):
+   with patch('erodist_control_center.app.QProcess.startDetached',return_value=(True,123)) as launch:
+    window.wine_action('run');launch.assert_called_once_with('/usr/bin/wine',['/tmp/test.exe'])
+print('PASS Wine chooser cancellation and launch confirmation',flush=True)
+window.navigation.setCurrentRow(5);settle();window.grab().save(str(out/'settings-wine.png'))
 window.close()
 print('PASS installed SVG/PNG icons; captures written',flush=True)
 # Exercise the real KDE helper with an isolated user configuration, not a live session.

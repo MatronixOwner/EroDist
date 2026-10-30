@@ -1,0 +1,14 @@
+[kdeglobals][General]
+ColorScheme=EroDistGraphite
+[kdeglobals][KDE]
+widgetStyle=Breeze
+[kdeglobals][Icons]
+Theme=EroDist
+[plasmarc][Theme]
+name=breeze-dark
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.breeze
+[ksplashrc][KSplash]
+Engine=none
+[Wallpaper]
+Image=/usr/share/erodist-desktop/desktop.png

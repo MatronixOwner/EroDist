@@ -1,0 +1,35 @@
+Window.SetBackgroundTopColor(0.035, 0.039, 0.047);
+Window.SetBackgroundBottomColor(0.008, 0.008, 0.012);
+logo = Image("logo.png");
+sprite = Sprite(logo);
+sprite.SetX(Window.GetWidth() / 2 - logo.GetWidth() / 2);
+sprite.SetY(Window.GetHeight() / 2 - logo.GetHeight() / 2 - 30);
+bar_image = Image("progress.png");
+bar = Sprite(bar_image);
+bar.SetX(Window.GetWidth() / 2 - 100);
+bar.SetY(Window.GetHeight() / 2 + 70);
+fun progress_callback(duration, progress) {
+    if (progress < 0.005) progress = 0.005;
+    if (progress > 1) progress = 1;
+    bar.SetImage(bar_image.Scale(200 * progress, 3));
+}
+Plymouth.SetBootProgressFunction(progress_callback);
+message = Sprite();
+fun show_text(text) {
+    image = Image.Text(text, 0.9, 0.9, 0.92);
+    message.SetImage(image);
+    message.SetX(Window.GetWidth() / 2 - image.GetWidth() / 2);
+    message.SetY(Window.GetHeight() / 2 + 110);
+}
+fun password_callback(prompt, bullets) {
+    password = "";
+    for (i = 0; i < bullets; i++) password += "*";
+    show_text(prompt + " " + password);
+}
+fun question_callback(prompt, entry) { show_text(prompt + " " + entry); }
+fun normal_callback() { show_text(""); }
+fun message_callback(text) { show_text(text); }
+Plymouth.SetDisplayPasswordFunction(password_callback);
+Plymouth.SetDisplayQuestionFunction(question_callback);
+Plymouth.SetDisplayNormalFunction(normal_callback);
+Plymouth.SetMessageFunction(message_callback);

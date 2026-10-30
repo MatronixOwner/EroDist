@@ -1,0 +1,7 @@
+[Plymouth Theme]
+Name=EroDist Graphite
+Description=EroDist graphite boot splash with encrypted disk prompt support
+ModuleName=script
+[script]
+ImageDir=/usr/share/plymouth/themes/erodist
+ScriptFile=/usr/share/plymouth/themes/erodist/erodist.script

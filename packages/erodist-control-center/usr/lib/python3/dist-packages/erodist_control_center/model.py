@@ -4,7 +4,7 @@ from pathlib import Path
 import platform
 import tempfile
 
-VERSION = '0.1.1'
+VERSION = '0.2.0'
 # title, subtitle, icon name, native KDE command
 SECTIONS = {
     'Оформление': [

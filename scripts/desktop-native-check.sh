@@ -37,7 +37,7 @@ if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo chroot "$ROOT" dpkg --add-architecture i386
 fi
 sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get update
-sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/erodist-icons.deb /tmp/erodist-control-center.deb python3-pyside6.qttest
+sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/erodist-icons.deb /tmp/erodist-control-center.deb /tmp/erodist-desktop.deb python3-pyside6.qttest
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends wine wine64 wine32:i386 fonts-wine
     sudo cp scripts/wine-smoke.py "$ROOT/tmp/"
@@ -45,6 +45,9 @@ if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
 fi
 sudo chroot "$ROOT" dpkg-query -W -f='${binary:Package} ${Version}\n' 'linux-image*' 'linux-modules*' | sort > "$WORK/kernel-after.txt"
 diff -u "$WORK/kernel-before.txt" "$WORK/kernel-after.txt"
+if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
+    sudo python3 scripts/desktop-theme-configure.py "$ROOT"
+fi
 echo '=== Native KCM inventory'
 sudo chroot "$ROOT" /usr/bin/env QT_QPA_PLATFORM=offscreen /usr/bin/timeout 30 kcmshell6 --list > "$WORK/kcms.txt"
 cat "$WORK/kcms.txt"

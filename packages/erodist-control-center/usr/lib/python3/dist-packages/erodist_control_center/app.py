@@ -8,7 +8,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QListWidget, QListWidgetItem, QStackedWidget, QScrollArea, QLabel,
-    QPushButton, QTextEdit, QFileDialog,
+    QPushButton, QTextEdit, QFileDialog, QMessageBox,
 )
 from .model import VERSION, SECTIONS, system_report, save_report
 
@@ -102,6 +102,7 @@ class Center(QMainWindow):
                 button.clicked.connect(lambda checked=False, cmd=command: self.launch(cmd))
                 layout.addWidget(button)
             layout.addStretch()
+        self.make_wine()
         self.make_about()
         self.navigation.currentRowChanged.connect(self.change_page)
         self.navigation.setCurrentRow(0)
@@ -157,6 +158,49 @@ class Center(QMainWindow):
             button.clicked.connect(lambda checked=False, row=target: self.navigation.setCurrentRow(row))
             layout.addWidget(button)
         layout.addStretch()
+
+    def make_wine(self):
+        layout = self.page('Windows-программы', 'erodist-terminal', 'Wine · только по вашему явному запуску')
+        layout.addWidget(label('Wine не является песочницей. EXE получает доступ к вашим файлам. '
+                               'Запускайте только доверенные программы. Совместимость игр, DRM и античитов не гарантируется.', 'muted'))
+        for title, description, action in [
+            ('Запустить EXE', 'Выбрать файл и подтвердить запуск через Wine', 'run'),
+            ('Настроить Wine', 'Открыть параметры текущего пользовательского Wine-префикса', 'configure'),
+            ('Удалить Windows-программу', 'Открыть стандартный список удаления программ Wine', 'uninstall'),
+        ]:
+            button = self.tile(title, description, 'erodist-terminal')
+            button.clicked.connect(lambda checked=False, selected=action: self.wine_action(selected))
+            layout.addWidget(button)
+        layout.addWidget(label('При первом запуске Wine создаёт личный префикс. Дополнительные компоненты '
+                               'конкретной программы могут потребовать интернета. Папка префикса не удаляется этим центром.', 'muted'))
+        layout.addStretch()
+
+    def wine_action(self, action):
+        from .wine import command_for, WineActionError
+        filename = None
+        if action == 'run':
+            filename, _ = QFileDialog.getOpenFileName(self, 'Выберите Windows-программу', '', 'Windows EXE (*.exe *.EXE)')
+            if not filename:
+                return
+        try:
+            executable, arguments = command_for(action, filename)
+        except WineActionError as exc:
+            self.status.setText(str(exc))
+            return
+        if action == 'run':
+            dialog = QMessageBox(self)
+            dialog.setWindowTitle('Запустить Windows-программу?')
+            dialog.setTextFormat(Qt.TextFormat.PlainText)
+            dialog.setText('Запустить через Wine:\n' + arguments[0])
+            dialog.setInformativeText('EXE может изменять ваши файлы. Wine — не песочница. Запускайте только доверенные файлы.')
+            dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
+            dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
+            if dialog.exec() != QMessageBox.StandardButton.Yes:
+                return
+        ok, _ = QProcess.startDetached(executable, arguments)
+        self.status.setText('Запуск передан Wine. Это не подтверждение совместимости: ошибки самой программы могут появиться в её окне. '
+                            'Windows-программа продолжит работу при закрытии центра.' if ok else
+                            'Не удалось запустить Wine. Проверьте его установку и права доступа к выбранному EXE.')
 
     def make_about(self):
         layout = self.page('О системе', 'erodist-editor', 'Только локальные сведения. Никакой автоматической отправки.')
