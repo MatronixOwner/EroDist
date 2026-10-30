@@ -1,0 +1,28 @@
+name: Desktop theme upstream audit
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['scripts/desktop-theme-audit.sh', '.github/workflows/theme-audit.yml']
+permissions:
+  contents: read
+  checks: write
+jobs:
+  theme-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: sudo apt-get update && sudo apt-get install -y xorriso squashfs-tools gnupg
+      - run: bash scripts/desktop-theme-audit.sh 2>&1 | tee /tmp/theme-audit.log
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[]|select(.name=="theme-audit")|.id' | head -1)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/theme-audit.log')
+          t=p.read_text(errors='replace')[-55000:] if p.exists() else 'No audit output'
+          Path('/tmp/theme-audit.json').write_text(json.dumps({'output':{'title':'Desktop upstream audit','summary':'Inspect login/boot before customization','text':'```\n'+t+'\n```'}}))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$id" --input /tmp/theme-audit.json
