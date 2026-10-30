@@ -1,8 +1,20 @@
 # EroDist — новая разработка на KDE neon / Plasma
 
+## Новый ISO: Центр настроек и Wine уже установлены
+
+**[Скачать ZIP с полным EroDist 0.2.0-test1 ISO](https://github.com/MatronixOwner/EroDist/actions/runs/41062176936/artifacts/12981917579)** — около 3,35 ГБ, вход в GitHub, срок хранения до 13 ноября 2026, 13:36 UTC (17:36 Астрахань), если не удалён раньше. Один архив → один полный ISO, без частей и сборочных скриптов.
+
+В новом образе предустановлены **Центр настроек EroDist 0.1.1**, тема значков и **Wine 9.0 с 32/64-битными библиотеками**. Доступны в Live rootfs, который разворачивает штатный Calamares. Для новых пользователей иконки EroDist выбраны по умолчанию. Старый чистый ISO автоматически не меняется — используйте этот новый образ.
+
+[Выпуск и контрольные суммы](https://github.com/MatronixOwner/EroDist/releases/tag/neon-settings-wine-1-1) · [Сборка и проверки](https://github.com/MatronixOwner/EroDist/actions/runs/41062176936) · [Состав, проверки и ограничения](docs/iso-settings-wine.md).
+
+Проверены Qt, обе архитектуры Wine, содержимое готового ISO, medium MD5, сохранение kernel/initrd и записей BIOS/UEFI. Полная загрузка/установка в VM и Hyper-V пока не проверены. Wine не гарантирует работу каждой Windows-программы.
+
+---
+
 ## Новое: иконки и Центр настроек EroDist
 
-По новому запросу созданы **отдельные новые пакеты**: `erodist-control-center` (Qt 6) и `erodist-icons` (Graphite). Без прежних редакций/мастеров, без зависимости от отменённого Qt-прототипа. Они **пока не включены в чистый ISO ниже**.
+По новому запросу созданы **отдельные новые пакеты**: `erodist-control-center` (Qt 6) и `erodist-icons` (Graphite). Без прежних редакций/мастеров, без зависимости от отменённого Qt-прототипа. Они включены в новый кастомный ISO выше. Ранний чистый ISO ниже остался неизменённым.
 
 [Скачать приложение и иконки 0.1.1](https://github.com/MatronixOwner/EroDist/releases/tag/desktop-0.1.1-3-1) · [Посмотреть иконки](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/icons.png) · [Окно приложения](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/settings-home.png).
 

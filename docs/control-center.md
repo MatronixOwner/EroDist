@@ -9,7 +9,7 @@
 - [Главная приложения](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/settings-home.png).
 - [Раздел оформления](https://github.com/MatronixOwner/EroDist/releases/download/desktop-0.1.1-3-1/settings-appearance.png).
 
-Это реальные снимки Qt-приложения и установленных значков в offscreen-режиме из rootfs neon, не AI-макеты рабочего стола. В ранее выданном **чистом ISO** этих пакетов пока нет. Новый ISO с ними в этом этапе не собирался.
+Это реальные снимки Qt-приложения и установленных значков в offscreen-режиме из rootfs neon, не AI-макеты рабочего стола. Ранее выданный **чистый ISO** остался без этих пакетов, но теперь доступен [новый ISO с предустановленными приложением, иконками и Wine](iso-settings-wine.md). Старый файл автоматически не меняется.
 
 ## Что сделано
 
