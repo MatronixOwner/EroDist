@@ -8,7 +8,7 @@ permissions:
   checks: write
 concurrency:
   group: erodist-desktop-iso-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   iso:
     if: contains(github.event.head_commit.message, '[desktop-iso]')
