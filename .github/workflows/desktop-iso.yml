@@ -1,0 +1,72 @@
+name: EroDist ISO with Settings Center and Wine
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['scripts/desktop-iso.sh', 'scripts/wine-smoke.py', 'neon/image.json', '.github/workflows/desktop-iso.yml']
+permissions:
+  contents: write
+  checks: write
+concurrency:
+  group: erodist-desktop-iso-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  iso:
+    if: contains(github.event.head_commit.message, '[desktop-iso]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v5
+      - name: Unit tests and tooling
+        run: |
+          python3 -m unittest discover -s tests -q
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xorriso gnupg squashfs-tools
+      - name: Build and verify the actual ISO
+        run: |
+          set -o pipefail
+          bash scripts/desktop-iso.sh 2>&1 | tee /tmp/desktop-iso.log
+      - name: Publish single ZIP with complete ISO
+        id: archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: EroDist-0.2.0-test1-Plasma-Settings-Wine-ISO
+          path: artifacts/desktop-iso/*.iso
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Publish download and verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_URL: ${{ steps.archive.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.archive.outputs.artifact-digest }}
+        run: |
+          cat > /tmp/desktop-iso-notes.md <<EOF_NOTES
+          # EroDist 0.2.0-test1 — Plasma, Центр настроек и Wine
+
+          [Скачать один ZIP с полным ISO]($ARTIFACT_URL), вход в GitHub, хранение 14 дней. Внутри один ISO, не части. Распакуйте перед записью/подключением в VM.
+
+          Предустановлены Центр настроек EroDist, новые иконки и Wine с 32/64-битной поддержкой. Доступны в Live и копируются штатным Calamares при установке. Иконки EroDist выбраны для новых пользователей. Прежних редакций и мастеров EroDist нет. Это новый тестовый образ, старый чистый ISO не изменяется.
+
+          Проверены Qt-интерфейс, реальные модули KDE, экспорт, настройка иконок и команды Wine в отдельных win32/win64-префиксах. Сам финальный ISO извлечён обратно: проверены MD5 содержимого, наличие установленных пакетов и неизменность исходных ядра/initrd; записи BIOS/UEFI сохранены. Полная загрузка/установка и Hyper-V пока не проверены. Wine не гарантирует совместимость со всеми Windows-программами/играми; дополнительные .NET/Gecko и отдельные компоненты конкретной программы могут требовать интернета и ручной установки.
+
+          SHA256 ZIP: \`$ARTIFACT_DIGEST\`. SHA256 ISO и версии пакетов — в приложенных файлах. Пользовательские Wine-префиксы создаются при первом запуске самим пользователем; root-префикс не включён в образ.
+          EOF_NOTES
+          gh release create "neon-settings-wine-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --target "$GITHUB_SHA" --prerelease --title "EroDist 0.2.0-test1 · Центр настроек и Wine предустановлены" --notes-file /tmp/desktop-iso-notes.md artifacts/desktop-iso/SHA256SUMS artifacts/desktop-iso/VERIFICATION.json artifacts/desktop-iso/BOOT-REPORT.txt
+          cat /tmp/desktop-iso-notes.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Diagnostic output
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_URL: ${{ steps.archive.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.archive.outputs.artifact-digest }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[]|select(.name=="iso")|.id' | head -1)
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          p=Path('/tmp/desktop-iso.log')
+          text=p.read_text(errors='replace')[-48000:] if p.exists() else 'Failed before ISO build.'
+          data={'output':{'title':'Settings + Wine ISO','summary':'ZIP: '+os.environ.get('ARTIFACT_URL','')+'\nZIP SHA256: '+os.environ.get('ARTIFACT_DIGEST',''),'text':'```text\n'+text+'\n```'}}
+          Path('/tmp/desktop-iso-output.json').write_text(json.dumps(data))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$id" --input /tmp/desktop-iso-output.json

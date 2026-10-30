@@ -1,0 +1,7 @@
+{
+  "version": "0.2.0-test1",
+  "output": "erodist-0.2.0-test1-neon-settings-wine-amd64.iso",
+  "volume_id": "ERODIST_0_2_TEST1",
+  "packages": ["erodist-control-center", "erodist-icons", "wine", "wine64", "wine32:i386", "fonts-wine"],
+  "default_icon_theme": "EroDist"
+}
