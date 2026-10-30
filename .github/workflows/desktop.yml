@@ -1,0 +1,61 @@
+name: EroDist icons and Settings Center
+on:
+  push:
+    branches: [arena/a42c77fd-erodist]
+    paths: ['packages/erodist-control-center/**', 'packages/erodist-icons/**', 'scripts/desktop-*', 'scripts/erodist-icons.py', 'tests/test_control_center.py', '.github/workflows/desktop.yml']
+permissions:
+  contents: write
+  checks: write
+concurrency:
+  group: erodist-desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  desktop:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -q
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xorriso gnupg squashfs-tools
+      - name: Package and test in original neon root
+        run: |
+          set -o pipefail
+          bash scripts/desktop-native-check.sh 2>&1 | tee /tmp/desktop-check.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EroDist-Settings-Center-and-Icons
+          path: artifacts/desktop/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish installable packages and actual Qt captures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/desktop-notes.md <<'NOTES'
+          Центр настроек EroDist 0.1 и новые иконки Graphite. Новые независимые пакеты, без прежних редакций/мастеров EroDist.
+
+          Приложение открывает штатные модули KDE. Права администратора не нужны; смена значков — только для текущего пользователя. Сведения о системе читаются локально; экспорт только по кнопке. Автоотправки нет.
+
+          Установка на KDE neon: скачайте erodist-icons.deb и erodist-control-center.deb в одну папку, откройте там терминал и выполните `sudo apt install ./erodist-icons.deb ./erodist-control-center.deb`. Затем откройте «Центр настроек EroDist» из меню. Новая тема применяется кнопкой «Иконки EroDist» в разделе «Оформление». Обратная смена темы — через штатные настройки значков KDE.
+
+          PNG — реальные снимки приложения в offscreen Qt из rootfs neon, не макеты и не снимки загруженного рабочего стола. Проверены геометрия, навигация, обработка отсутствующего компонента и экспорт. Изменения всех внешних KCM-модулей и живая смена темы в сеансе Plasma ещё требуют проверки. Пакеты пока не включены в ранее выданный чистый ISO.
+          NOTES
+          gh release create "desktop-0.1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --target "$GITHUB_SHA" --prerelease --title "EroDist · Центр настроек и Graphite Icons 0.1" --notes-file /tmp/desktop-notes.md artifacts/desktop/*.deb artifacts/desktop/SHA256SUMS artifacts/desktop/captures/icons.png artifacts/desktop/captures/settings-home.png artifacts/desktop/captures/settings-appearance.png
+      - name: Diagnostic check output
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[]|select(.name=="desktop")|.id' | head -1)
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('/tmp/desktop-check.log')
+          text=p.read_text(errors='replace')[-48000:] if p.exists() else 'Failed before native check.'
+          Path('/tmp/desktop-output.json').write_text(json.dumps({'output':{'title':'Native Qt and icons','summary':'Native package build and smoke, not an ISO or full Plasma session.','text':'```text\n'+text+'\n```'}}))
+          PY
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$id" --input /tmp/desktop-output.json

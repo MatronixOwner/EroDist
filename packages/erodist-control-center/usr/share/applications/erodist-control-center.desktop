@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=EroDist Settings Center
+Name[ru]=Центр настроек EroDist
+Comment=Desktop, devices, network and local system information
+Comment[ru]=Оформление, устройства, сеть и сведения о системе
+Exec=erodist-control-center
+Icon=erodist-control-center
+Categories=Settings;System;
+Keywords=EroDist;Settings;Plasma;
+Keywords[ru]=EroDist;Настройки;Система;
+Terminal=false
+StartupNotify=true

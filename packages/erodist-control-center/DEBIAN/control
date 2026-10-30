@@ -1,0 +1,9 @@
+Package: erodist-control-center
+Version: 0.1.0
+Architecture: all
+Maintainer: EroDist Project <erodist@localhost>
+Depends: python3, python3-pyside6.qtwidgets, erodist-icons
+Recommends: systemsettings, plasma-discover, plasma-nm
+Description: EroDist Settings Center for KDE Plasma 6
+ Native Qt desktop application with categorized KDE settings and local system information.
+ No telemetry, privileged helper, edition installer or background service.

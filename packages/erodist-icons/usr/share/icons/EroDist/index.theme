@@ -1,0 +1,17 @@
+[Icon Theme]
+Name=EroDist Graphite
+Comment=Original graphite application icons with Breeze fallback
+Inherits=breeze-dark,breeze,hicolor
+Directories=scalable/apps,256x256/apps
+
+[scalable/apps]
+Size=128
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Applications
+
+[256x256/apps]
+Size=256
+Type=Fixed
+Context=Applications

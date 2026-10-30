@@ -1,0 +1,6 @@
+Package: erodist-icons
+Version: 0.1.0
+Architecture: all
+Maintainer: EroDist Project <erodist@localhost>
+Description: Graphite application icons for EroDist
+ Original monochrome application icons with Breeze fallback for other applications.
