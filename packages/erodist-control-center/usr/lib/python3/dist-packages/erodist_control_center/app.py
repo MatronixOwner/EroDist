@@ -54,6 +54,7 @@ def resolve_program(name):
 
 def label(text, role=None):
     widget = QLabel(text)
+    widget.setTextFormat(Qt.TextFormat.PlainText)
     widget.setWordWrap(True)
     if role:
         widget.setObjectName(role)

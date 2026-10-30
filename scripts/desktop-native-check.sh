@@ -47,6 +47,7 @@ sudo chroot "$ROOT" dpkg-query -W -f='${binary:Package} ${Version}\n' 'linux-ima
 diff -u "$WORK/kernel-before.txt" "$WORK/kernel-after.txt"
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo python3 scripts/desktop-theme-configure.py "$ROOT"
+    sudo chroot "$ROOT" update-alternatives --set default.plymouth /usr/share/plymouth/themes/erodist/erodist.plymouth
 fi
 echo '=== Native KCM inventory'
 sudo chroot "$ROOT" /usr/bin/env QT_QPA_PLATFORM=offscreen /usr/bin/timeout 30 kcmshell6 --list > "$WORK/kcms.txt"

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+if [ "$1" = remove ] || [ "$1" = deconfigure ]; then
+    update-alternatives --remove default.plymouth /usr/share/plymouth/themes/erodist/erodist.plymouth
+fi
