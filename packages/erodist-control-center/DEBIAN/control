@@ -1,5 +1,5 @@
 Package: erodist-control-center
-Version: 0.1.0
+Version: 0.1.1
 Architecture: all
 Maintainer: EroDist Project <erodist@localhost>
 Depends: python3, python3-pyside6.qtwidgets, erodist-icons

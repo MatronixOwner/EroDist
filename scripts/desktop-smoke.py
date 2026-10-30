@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt,QEventLoop,QTimer,QPoint,QRect
 from PySide6.QtGui import QIcon,QImage,QPainter,QColor,QFont
 from PySide6.QtWidgets import QApplication,QLabel,QPushButton
 from PySide6.QtTest import QTest
-from erodist_control_center.app import Center,configure_icons
+from erodist_control_center.app import Center,configure_icons,resolve_program
 from erodist_control_center.model import SECTIONS
 
 inventory=Path('/tmp/erodist-kcms.txt').read_text()
@@ -82,3 +82,14 @@ window.resize(1060,740);window.navigation.setCurrentRow(0);settle();window.grab(
 window.navigation.setCurrentRow(1);settle();window.grab().save(str(out/'settings-appearance.png'))
 window.close()
 print('PASS installed SVG/PNG icons; captures written',flush=True)
+# Exercise the real KDE helper with an isolated user configuration, not a live session.
+import subprocess,tempfile,configparser
+helper=resolve_program('plasma-changeicons')
+assert helper,'Native Plasma icon helper missing'
+with tempfile.TemporaryDirectory() as directory:
+ env=dict(os.environ,XDG_CONFIG_HOME=directory)
+ for _ in range(2):
+  subprocess.run([helper,'EroDist'],env=env,check=True,timeout=20)
+ config=configparser.ConfigParser();config.read(Path(directory)/'kdeglobals')
+ assert config['Icons']['Theme']=='EroDist'
+print('PASS real Plasma icon helper, isolated configuration and idempotence:',helper,flush=True)

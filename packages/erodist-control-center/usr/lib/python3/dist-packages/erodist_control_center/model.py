@@ -4,11 +4,11 @@ from pathlib import Path
 import platform
 import tempfile
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 # title, subtitle, icon name, native KDE command
 SECTIONS = {
     'Оформление': [
-        ('Иконки EroDist', 'Применить новую тему значков для текущего пользователя', 'erodist-appearance', ('plasma-apply-icontheme', 'EroDist')),
+        ('Иконки EroDist', 'Применить новую тему значков для текущего пользователя', 'erodist-appearance', ('plasma-changeicons', 'EroDist')),
         ('Общий стиль', 'Темы рабочего стола и оформление окон', 'erodist-appearance', ('systemsettings', 'kcm_lookandfeel')),
         ('Цвета', 'Цветовая схема приложений', 'erodist-appearance', ('systemsettings', 'kcm_colors')),
         ('Шрифты', 'Размер и сглаживание текста', 'erodist-editor', ('systemsettings', 'kcm_fonts')),

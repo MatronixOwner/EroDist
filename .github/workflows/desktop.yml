@@ -36,15 +36,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat > /tmp/desktop-notes.md <<'NOTES'
-          Центр настроек EroDist 0.1 и новые иконки Graphite. Новые независимые пакеты, без прежних редакций/мастеров EroDist.
+          Центр настроек EroDist 0.1.1 и новые иконки Graphite. Новые независимые пакеты, без прежних редакций/мастеров EroDist.
 
           Приложение открывает штатные модули KDE. Права администратора не нужны; смена значков — только для текущего пользователя. Сведения о системе читаются локально; экспорт только по кнопке. Автоотправки нет.
 
           Установка на KDE neon: скачайте erodist-icons.deb и erodist-control-center.deb в одну папку, откройте там терминал и выполните `sudo apt install ./erodist-icons.deb ./erodist-control-center.deb`. Затем откройте «Центр настроек EroDist» из меню. Новая тема применяется кнопкой «Иконки EroDist» в разделе «Оформление». Обратная смена темы — через штатные настройки значков KDE.
 
-          PNG — реальные снимки приложения в offscreen Qt из rootfs neon, не макеты и не снимки загруженного рабочего стола. Проверены геометрия, навигация, обработка отсутствующего компонента и экспорт. Изменения всех внешних KCM-модулей и живая смена темы в сеансе Plasma ещё требуют проверки. Пакеты пока не включены в ранее выданный чистый ISO.
+          PNG — реальные снимки приложения в offscreen Qt из rootfs neon, не макеты и не снимки загруженного рабочего стола. Проверены геометрия, навигация, обработка отсутствующего компонента и экспорт. Запись темы проверена настоящим plasma-changeicons в изолированной конфигурации. Изменения всех внешних KCM-модулей и живая смена темы в сеансе Plasma ещё требуют проверки. Пакеты пока не включены в ранее выданный чистый ISO.
           NOTES
-          gh release create "desktop-0.1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --target "$GITHUB_SHA" --prerelease --title "EroDist · Центр настроек и Graphite Icons 0.1" --notes-file /tmp/desktop-notes.md artifacts/desktop/*.deb artifacts/desktop/SHA256SUMS artifacts/desktop/captures/icons.png artifacts/desktop/captures/settings-home.png artifacts/desktop/captures/settings-appearance.png
+          gh release create "desktop-0.1.1-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --target "$GITHUB_SHA" --prerelease --title "EroDist · Центр настроек и Graphite Icons 0.1.1" --notes-file /tmp/desktop-notes.md artifacts/desktop/*.deb artifacts/desktop/SHA256SUMS artifacts/desktop/captures/icons.png artifacts/desktop/captures/settings-home.png artifacts/desktop/captures/settings-appearance.png
       - name: Diagnostic check output
         if: always()
         env:

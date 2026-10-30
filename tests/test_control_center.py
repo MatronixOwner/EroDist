@@ -13,7 +13,7 @@ class ControlCenterTests(unittest.TestCase):
  def test_no_retired_editions_or_privileged_commands(self):
   for entries in model.SECTIONS.values():
    for title,description,icon,command in entries:
-    self.assertIn(command[0],{'systemsettings','plasma-discover','plasma-apply-icontheme'})
+    self.assertIn(command[0],{'systemsettings','plasma-discover','plasma-changeicons'})
     self.assertTrue(all(isinstance(arg,str) for arg in command))
   for filename in PATH.parent.glob('*.py'):
    code=filename.read_text()

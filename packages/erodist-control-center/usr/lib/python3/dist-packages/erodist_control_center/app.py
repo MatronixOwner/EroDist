@@ -1,4 +1,5 @@
 """Fresh EroDist Qt 6 application, independent of the retired port prototype."""
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -36,6 +37,19 @@ QScrollBar::handle:vertical {background:#505c70;min-height:28px;border-radius:4p
 QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;}
 QToolTip {background:#252b35;color:#fff;border:1px solid #667084;}
 '''
+
+
+def resolve_program(name):
+    executable = shutil.which(name)
+    if executable:
+        return executable
+    if name == 'plasma-changeicons':
+        # KDE installs this tool in libexec, not in PATH. No shell or privileges.
+        for directory in ('/usr/lib/x86_64-linux-gnu/libexec', '/usr/lib/aarch64-linux-gnu/libexec', '/usr/libexec', '/usr/lib/libexec'):
+            candidate = Path(directory) / name
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate)
+    return None
 
 
 def label(text, role=None):
@@ -164,11 +178,11 @@ class Center(QMainWindow):
         self.pages.currentWidget().verticalScrollBar().setValue(0)
 
     def launch(self, command):
-        executable = shutil.which(command[0])
+        executable = resolve_program(command[0])
         if not executable:
             self.status.setText('Компонент не установлен: ' + command[0] + '. Установите его штатным менеджером пакетов.')
             return
-        if command[0] == 'plasma-apply-icontheme':
+        if command[0] == 'plasma-changeicons':
             if self.theme_process.state() != QProcess.ProcessState.NotRunning:
                 return
             self.status.setText('Применяем тему значков для текущего пользователя…')
