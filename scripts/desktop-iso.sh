@@ -36,7 +36,7 @@ if not c.has_section('Icons'):c.add_section('Icons')
 c.set('Icons','Theme','EroDist')
 with p.open('w') as stream:c.write(stream,space_around_delimiters=False)
 meta=root/'usr/share/erodist-image/build.json';meta.parent.mkdir(parents=True,exist_ok=True)
-meta.write_text(json.dumps({'image':json.load(open('neon/image.json')),'upstream':json.load(open('neon/source.json'))},indent=2)+'\n')
+meta.write_text(json.dumps({'image':json.load(open('neon/image.json')),'upstream':json.load(open('neon/source.json')),'parent_iso':json.load(open('neon/parent-image.json')) if __import__('os').environ.get('ERODIST_BASE_ISO') else None},indent=2)+'\n')
 PY
 # Remove testing-only material, with no shared Wine prefix and no root theme settings.
 sudo rm -f "$ROOT/tmp/erodist-control-center.deb" "$ROOT/tmp/erodist-icons.deb" "$ROOT/tmp/desktop-smoke.py" "$ROOT/tmp/wine-smoke.py" "$ROOT/tmp/erodist-desktop.deb" "$ROOT/tmp/erodist-kcms.txt" "$ROOT/tmp/erodist-report-test.txt"

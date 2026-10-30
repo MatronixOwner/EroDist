@@ -3,7 +3,21 @@ set -euo pipefail
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$REPO"
 bash scripts/desktop-package.sh
-bash scripts/neon-clean-iso.sh
+if [ -n "${ERODIST_BASE_ISO:-}" ]; then
+    python3 - "$ERODIST_BASE_ISO" <<'BASE'
+import hashlib,json,sys
+from pathlib import Path
+c=json.load(open('neon/parent-image.json'));p=Path(sys.argv[1])
+assert p.name==c['filename']
+h=hashlib.sha256()
+with p.open('rb') as f:
+    for chunk in iter(lambda:f.read(1024*1024),b''):h.update(chunk)
+assert h.hexdigest()==c['sha256'],'Parent ISO hash mismatch'
+print('PASS approved parent ISO SHA256; original upstream provenance retained:',c['source_commit'])
+BASE
+else
+    bash scripts/neon-clean-iso.sh
+fi
 WORK="$REPO/build/desktop-native"
 mkdir -p "$WORK"
 [ ! -e "$WORK/root" ] || { echo 'Fresh native build directory required'; exit 1; }
@@ -36,6 +50,9 @@ sudo chroot "$ROOT" dpkg-query -W -f='${binary:Package} ${Version}\n' 'linux-ima
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
     sudo chroot "$ROOT" dpkg --add-architecture i386
 fi
+if [ -n "${ERODIST_BASE_ISO:-}" ]; then
+    sudo chroot "$ROOT" dpkg -i /tmp/erodist-icons.deb /tmp/erodist-control-center.deb /tmp/erodist-desktop.deb
+else
 if ! sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 update; then
     # The upstream HTTP mirror occasionally responds 502; retain keys/pins and retry HTTPS.
     sudo python3 - "$ROOT" <<'APT'
@@ -49,8 +66,11 @@ APT
     sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 update
 fi
 sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/erodist-icons.deb /tmp/erodist-control-center.deb /tmp/erodist-desktop.deb python3-pyside6.qttest
+fi
 if [ "${ERODIST_WITH_WINE:-0}" = 1 ]; then
-    sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends wine wine64 wine32:i386 fonts-wine
+    if [ -z "${ERODIST_BASE_ISO:-}" ]; then
+        sudo chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends wine wine64 wine32:i386 fonts-wine
+    fi
     sudo cp scripts/wine-smoke.py "$ROOT/tmp/"
     sudo chroot "$ROOT" /usr/bin/python3 -u /tmp/wine-smoke.py
 fi

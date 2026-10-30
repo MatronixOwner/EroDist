@@ -6,8 +6,9 @@ on:
 permissions:
   contents: write
   checks: write
+  actions: read
 concurrency:
-  group: erodist-graphite-iso-${{ github.ref }}
+  group: erodist-graphite-parent-iso-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   iso:
@@ -16,6 +17,13 @@ jobs:
     timeout-minutes: 70
     steps:
       - uses: actions/checkout@v5
+      - name: Retrieve approved immutable parent image (no dependency on external KDE mirror uptime)
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 41062176936
+          name: EroDist-0.2.0-test1-Plasma-Settings-Wine-ISO
+          path: artifacts/neon-clean
       - name: Unit tests and tooling
         run: |
           python3 -m unittest discover -s tests -q
@@ -24,7 +32,7 @@ jobs:
       - name: Build and verify the actual ISO
         run: |
           set -o pipefail
-          bash scripts/desktop-iso.sh 2>&1 | tee /tmp/desktop-iso.log
+          ERODIST_BASE_ISO="$PWD/artifacts/neon-clean/erodist-0.2.0-test1-neon-settings-wine-amd64.iso" bash scripts/desktop-iso.sh 2>&1 | tee /tmp/desktop-iso.log
       - name: Observe live boot in QEMU (not Hyper-V or disk install)
         run: |
           if [ -e /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi

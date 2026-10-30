@@ -32,7 +32,7 @@ try:
    if 'error' in reply:raise RuntimeError(reply['error'])
    if 'return' in reply:return reply['return']
  call('qmp_capabilities')
- def key(name):call('human-monitor-command',{'command-line':'sendkey '+name});time.sleep(.07)
+ def key(name):call('human-monitor-command',{'command-line':'sendkey '+name+' 30'});time.sleep(.07)
  def type_command(text):
   mapping={' ':'spc','-':'minus','/':'slash','=':'equal',',':'comma','.':'dot','_':'shift-minus'}
   key('alt-f2');time.sleep(2)
