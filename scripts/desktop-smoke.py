@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt,QEventLoop,QTimer,QPoint,QRect
 from PySide6.QtGui import QIcon,QImage,QPainter,QColor,QFont
 from PySide6.QtWidgets import QApplication,QLabel,QPushButton
 from PySide6.QtTest import QTest
-from erodist_control_center.app import Center
+from erodist_control_center.app import Center,configure_icons
 from erodist_control_center.model import SECTIONS
 
 inventory=Path('/tmp/erodist-kcms.txt').read_text()
@@ -19,7 +19,8 @@ for actions in SECTIONS.values():
    assert command[1] in inventory,('KDE module absent',command[1])
 print('PASS native KCM module names',flush=True)
 app=QApplication([])
-QIcon.setThemeName('EroDist')
+configure_icons()
+print('Icon paths:',QIcon.themeSearchPaths(),'theme:',QIcon.themeName(),flush=True)
 out=Path('/tmp/desktop-captures');out.mkdir(exist_ok=True)
 window=Center();window.show()
 def settle():
@@ -66,10 +67,12 @@ print('PASS navigation, keyboard, command dispatch, missing backend, save and ca
 # Render real installed theme assets, not an AI mockup of an application window.
 icons=[('erodist-control-center','Настройки'),('erodist-files','Файлы'),('erodist-terminal','Терминал'),('erodist-browser','Браузер'),('erodist-software','Программы'),('erodist-editor','Редактор'),('erodist-display','Экран'),('erodist-network','Сеть')]
 image=QImage(1000,540,QImage.Format.Format_ARGB32);image.fill(QColor('#111318'))
+for name,_ in icons:
+ print('Theme icon',name,QIcon.hasThemeIcon(name),'file',QIcon.fromTheme(name).name(),flush=True)
+ assert QIcon.hasThemeIcon(name),name
 painter=QPainter(image);painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 painter.setPen(QColor('#edf0f5'));painter.setFont(QFont('Sans',20));painter.drawText(QRect(32,16,940,52),Qt.AlignmentFlag.AlignLeft,'EroDist · Graphite Icons')
 for index,(name,title) in enumerate(icons):
- assert QIcon.hasThemeIcon(name),name
  icon=QIcon.fromTheme(name);assert not icon.isNull()
  x=40+(index%4)*246;y=88+(index//4)*214
  painter.drawPixmap(x+45,y,icon.pixmap(138,138))

@@ -204,11 +204,20 @@ class Center(QMainWindow):
             event.accept()
 
 
+def configure_icons():
+    # The offscreen Qt platform does not necessarily supply desktop theme paths.
+    paths = QIcon.themeSearchPaths()
+    if '/usr/share/icons' not in paths:
+        paths.append('/usr/share/icons')
+    QIcon.setThemeSearchPaths(paths)
+    QIcon.setThemeName('EroDist')
+
+
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName('Центр настроек EroDist')
     app.setDesktopFileName('erodist-control-center')
-    QIcon.setThemeName('EroDist')
+    configure_icons()
     window = Center()
     window.show()
     sys.exit(app.exec())
